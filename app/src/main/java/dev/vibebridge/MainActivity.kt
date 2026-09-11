@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -28,6 +27,7 @@ import dev.vibebridge.ui.screens.SettingsScreen
 import dev.vibebridge.ui.screens.WorkspaceScreen
 import dev.vibebridge.ui.theme.Bg
 import dev.vibebridge.ui.theme.VbTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.vibebridge.viewmodel.AppViewModel
 import dev.vibebridge.viewmodel.GrabViewModel
 import dev.vibebridge.viewmodel.PushViewModel
@@ -43,14 +43,14 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Root() {
-    val vm: AppViewModel by viewModels()
+    val vm: AppViewModel = viewModel<AppViewModel>()
     val ui by vm.ui.collectAsState()
     var tab by remember { mutableStateOf(VbTab.HOME) }
     var showSettings by remember { mutableStateOf(false) }
     var showPush by remember { mutableStateOf(false) }
-    val grabVm: GrabViewModel by viewModels()
-    val wsVm: WorkspaceViewModel by viewModels()
-    val pushVm: PushViewModel by viewModels()
+    val grabVm: GrabViewModel = viewModel<GrabViewModel>()
+    val wsVm: WorkspaceViewModel = viewModel<WorkspaceViewModel>()
+    val pushVm: PushViewModel = viewModel<PushViewModel>()
 
     if (!ui.onboarded) {
         ConnectScreen(vm)
