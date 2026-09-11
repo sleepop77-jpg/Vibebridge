@@ -206,12 +206,33 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         return log
     }
 
-    private fun extractErrors(log: String): List<String> =
-        log.lines().filter {
-            it.startsWith("e: ") || it.contains("error:") ||
-                it.startsWith("FAILURE:") || it.startsWith("Execution failed for task") ||
-                it.startsWith("What went wrong:")
+    private fun extractErrors(log: String): List<String> {
+        val patterns = listOf(
+            Regex("""\be: file://[^\n]+"""),
+            Regex("""\berror: [^\n]+"""),
+            Regex("""\bFAILURE: [^\n]+"""),
+            Regex("""Execution failed for task [^\n]+"""),
+            Regex("""What went wrong:[^\n]*""")
+        )
+        val errors = mutableListOf<String>()
+        val seen = mutableSetOf<String>()
+        
+        for (line in log.lines()) {
+            val cleaned = line.replace(Regex("""^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z\s*"""), "")
+            for (pattern in patterns) {
+                val match = pattern.find(cleaned)
+                if (match != null) {
+                    val err = match.value.trim()
+                    if (err !in seen) {
+                        seen.add(err)
+                        errors.add(err)
+                    }
+                    break
+                }
+            }
         }
+        return errors
+    }
 
     fun copyErrors(runId: Long) {
         viewModelScope.launch {
