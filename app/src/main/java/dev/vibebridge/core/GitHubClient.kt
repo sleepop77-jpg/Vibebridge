@@ -173,6 +173,22 @@ class GitHubClient {
             out
         }
 
+    suspend fun jobs(pat: String, owner: String, repo: String, runId: Long): VbResult<List<JobInfo>> =
+        raw(pat, "GET", "/repos/$owner/$repo/actions/runs/$runId/jobs", null).map {
+            val out = mutableListOf<JobInfo>()
+            val a = JSONObject(it.body).optJSONArray("jobs") ?: JSONArray()
+            for (i in 0 until a.length()) {
+                val o = a.getJSONObject(i)
+                out += JobInfo(
+                    o.optLong("id"), o.optString("name"), o.optString("status"), o.optString("conclusion")
+                )
+            }
+            out
+        }
+
+    suspend fun jobLog(pat: String, owner: String, repo: String, jobId: Long): VbResult<String> =
+        raw(pat, "GET", "/repos/$owner/$repo/actions/jobs/$jobId/logs", null).map { it.body }
+
     suspend fun downloadArtifact(pat: String, url: String, outFile: File): VbResult<File> = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
@@ -199,14 +215,11 @@ class GitHubClient {
         val refResult = raw(pat, "GET", "/repos/$owner/$repo/git/ref/heads/$branch", null)
         val ref = (refResult as? VbResult.Ok)?.value ?: return VbResult.Err("Cannot resolve branch $branch.")
         val refSha = JSONObject(ref.body).getJSONObject("object").getString("sha")
-        
         val commitResult = raw(pat, "GET", "/repos/$owner/$repo/git/commits/$refSha", null)
         val commit = (commitResult as? VbResult.Ok)?.value ?: return VbResult.Err("Cannot read head commit.")
         val treeSha = JSONObject(commit.body).getJSONObject("tree").getString("sha")
-        
         val treeResult = raw(pat, "GET", "/repos/$owner/$repo/git/trees/$treeSha?recursive=1", null)
         val tree = (treeResult as? VbResult.Ok)?.value ?: return VbResult.Err("Cannot read file tree.")
-        
         val entries = JSONObject(tree.body).optJSONArray("tree") ?: JSONArray()
         val out = linkedMapOf<String, String>()
         for (i in 0 until entries.length()) {

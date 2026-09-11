@@ -1,7 +1,11 @@
 package dev.vibebridge.viewmodel
 
 import android.app.Application
+import android.content.ContentValues
 import android.content.Intent
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -59,6 +63,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     private fun nextId() = ++seq
     private var pendingOps: List<BridgeOp>? = null
     private var clipJob: Job? = null
+    private var logCache: Pair<Long, String>? = null
 
     private fun append(m: ChatMsg) = _ui.update { it.copy(messages = it.messages + m) }
 
@@ -181,33 +186,132 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun downloadAndShareApk(runId: Long) {
+    private suspend fun fetchLog(runId: Long): String? {
+        logCache?.let { if (it.first == runId) return it.second }
+        val (owner, repo) = prefs.splitRepo()
+        val jobsResult = github.jobs(secure.pat, owner, repo, runId)
+        val jobs = (jobsResult as? VbResult.Ok)?.value
+        if (jobs.isNullOrEmpty()) {
+            append(NoteMsg(nextId(), "no jobs found for this run", NoteKind.WARN))
+            return null
+        }
+        val failed = jobs.firstOrNull { it.conclusion == "failure" } ?: jobs.first()
+        val logResult = github.jobLog(secure.pat, owner, repo, failed.id)
+        val log = (logResult as? VbResult.Ok)?.value
+        if (log.isNullOrBlank()) {
+            append(NoteMsg(nextId(), "could not fetch job log", NoteKind.WARN))
+            return null
+        }
+        logCache = runId to log
+        return log
+    }
+
+    private fun extractErrors(log: String): List<String> =
+        log.lines().filter {
+            it.startsWith("e: ") || it.contains("error:") ||
+                it.startsWith("FAILURE:") || it.startsWith("Execution failed for task") ||
+                it.startsWith("What went wrong:")
+        }
+
+    fun copyErrors(runId: Long) {
+        viewModelScope.launch {
+            val log = fetchLog(runId) ?: return@launch
+            val errs = extractErrors(log)
+            val text = if (errs.isEmpty()) log.takeLast(20000) else errs.joinToString("\n")
+            val ok = VbClipboard.copy(getApplication(), "ci-errors", text)
+            append(
+                NoteMsg(
+                    nextId(),
+                    if (ok) "copied ${if (errs.isEmpty()) "log tail" else "${errs.size} error lines"} to clipboard" else "clipboard unavailable",
+                    if (ok) NoteKind.INFO else NoteKind.ERROR
+                )
+            )
+        }
+    }
+
+    fun saveErrorsMd(runId: Long, sha: String?) {
+        viewModelScope.launch {
+            val log = fetchLog(runId) ?: return@launch
+            val errs = extractErrors(log)
+            val md = buildString {
+                appendLine("# VibeBridge CI failure")
+                appendLine()
+                appendLine("- commit: ${sha ?: "unknown"}")
+                appendLine("- run id: $runId")
+                appendLine("- fetched: ${java.util.Date()}")
+                appendLine()
+                appendLine("## Extracted errors (${errs.size})")
+                appendLine("```text")
+                errs.forEach { appendLine(it) }
+                appendLine("```")
+                appendLine()
+                appendLine("## Full log (tail 20k chars)")
+                appendLine("```text")
+                appendLine(log.takeLast(20000))
+                appendLine("```")
+            }
+            val name = "vibebridge-errors-${(sha ?: runId.toString()).take(7)}.md"
+            val saved = saveToDownloads(name, md.toByteArray(Charsets.UTF_8), "text/markdown")
+            append(
+                NoteMsg(
+                    nextId(),
+                    if (saved) "saved $name to Downloads" else "could not save file",
+                    if (saved) NoteKind.INFO else NoteKind.ERROR
+                )
+            )
+        }
+    }
+
+    private suspend fun fetchApk(runId: Long): ByteArray? {
+        val (owner, repo) = prefs.splitRepo()
+        val artsResult = github.artifacts(secure.pat, owner, repo, runId)
+        val arts = (artsResult as? VbResult.Ok)?.value
+        if (arts.isNullOrEmpty()) {
+            append(NoteMsg(nextId(), "no artifacts found for this run", NoteKind.WARN))
+            return null
+        }
+        val zipFile = File(getApplication<Application>().filesDir, "out/artifact-$runId.zip")
+        val dlResult = github.downloadArtifact(secure.pat, arts.first().downloadUrl, zipFile)
+        if (dlResult is VbResult.Err) {
+            append(NoteMsg(nextId(), "download failed: ${dlResult.message}", NoteKind.ERROR))
+            return null
+        }
+        val apkDir = File(getApplication<Application>().filesDir, "out/apk-$runId")
+        val apkFile = extractApk(zipFile, apkDir)
+        if (apkFile == null) {
+            append(NoteMsg(nextId(), "no apk found in artifact zip", NoteKind.WARN))
+            return null
+        }
+        return apkFile.readBytes()
+    }
+
+    fun saveApkToDownloads(runId: Long, sha: String?) {
         val (owner, repo) = prefs.splitRepo()
         if (owner.isBlank() || secure.pat.isBlank()) return
-        
         append(NoteMsg(nextId(), "fetching artifact...", NoteKind.INFO))
         viewModelScope.launch {
-            val artsResult = github.artifacts(secure.pat, owner, repo, runId)
-            val arts = (artsResult as? VbResult.Ok)?.value
-            if (arts.isNullOrEmpty()) {
-                append(NoteMsg(nextId(), "no artifacts found for this run", NoteKind.WARN))
-                return@launch
-            }
-            val artifact = arts.first()
-            val zipFile = File(getApplication<Application>().filesDir, "out/artifact-$runId.zip")
-            val dlResult = github.downloadArtifact(secure.pat, artifact.downloadUrl, zipFile)
-            if (dlResult is VbResult.Err) {
-                append(NoteMsg(nextId(), "download failed: ${dlResult.message}", NoteKind.ERROR))
-                return@launch
-            }
-            
-            val apkDir = File(getApplication<Application>().filesDir, "out/apk-$runId")
-            val apkFile = extractApk(zipFile, apkDir)
-            if (apkFile == null) {
-                append(NoteMsg(nextId(), "no apk found in artifact zip", NoteKind.WARN))
-                return@launch
-            }
-            
+            val bytes = fetchApk(runId) ?: return@launch
+            val name = "vibebridge-${(sha ?: runId.toString()).take(7)}.apk"
+            val saved = saveToDownloads(name, bytes, "application/vnd.android.package-archive")
+            append(
+                NoteMsg(
+                    nextId(),
+                    if (saved) "saved $name to Downloads folder" else "could not save apk",
+                    if (saved) NoteKind.INFO else NoteKind.ERROR
+                )
+            )
+        }
+    }
+
+    fun shareApk(runId: Long) {
+        val (owner, repo) = prefs.splitRepo()
+        if (owner.isBlank() || secure.pat.isBlank()) return
+        append(NoteMsg(nextId(), "fetching artifact...", NoteKind.INFO))
+        viewModelScope.launch {
+            val bytes = fetchApk(runId) ?: return@launch
+            val apkFile = File(getApplication<Application>().filesDir, "out/share-apk/app-debug.apk")
+            apkFile.parentFile?.mkdirs()
+            apkFile.writeBytes(bytes)
             val ctx = getApplication<Application>()
             val uri = FileProvider.getUriForFile(ctx, ctx.packageName + ".vbfiles", apkFile)
             val share = Intent(Intent.ACTION_SEND).apply {
@@ -217,6 +321,29 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             }
             share.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             ctx.startActivity(Intent.createChooser(share, "Share APK").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
+    }
+
+    private fun saveToDownloads(name: String, bytes: ByteArray, mime: String): Boolean {
+        val ctx = getApplication<Application>()
+        return try {
+            if (Build.VERSION.SDK_INT >= 29) {
+                val values = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+                    put(MediaStore.MediaColumns.MIME_TYPE, mime)
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                }
+                val uri = ctx.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) ?: return false
+                ctx.contentResolver.openOutputStream(uri)?.use { it.write(bytes) } ?: return false
+                true
+            } else {
+                val dir = ctx.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: return false
+                dir.mkdirs()
+                File(dir, name).writeBytes(bytes)
+                true
+            }
+        } catch (e: Exception) {
+            false
         }
     }
 

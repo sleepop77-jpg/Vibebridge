@@ -178,11 +178,10 @@ fun ChatScreen(vm: ChatViewModel, openSettings: () -> Unit) {
                                     }
                                 }
                             },
-                            onDownloadApk = {
-                                if (msg is PushMsg) {
-                                    msg.runId?.let { vm.downloadAndShareApk(it) }
-                                }
-                            }
+                            onCopyErrors = { if (msg is PushMsg) msg.runId?.let { vm.copyErrors(it) } },
+                            onSaveMd = { if (msg is PushMsg) msg.runId?.let { vm.saveErrorsMd(it, msg.sha) } },
+                            onSaveApk = { if (msg is PushMsg) msg.runId?.let { vm.saveApkToDownloads(it, msg.sha) } },
+                            onShareApk = { if (msg is PushMsg) msg.runId?.let { vm.shareApk(it) } }
                         )
                     }
                 }
@@ -233,14 +232,17 @@ private fun Bubble(
     onApply: () -> Unit,
     onPush: () -> Unit,
     onOpenRun: () -> Unit,
-    onDownloadApk: () -> Unit
+    onCopyErrors: () -> Unit,
+    onSaveMd: () -> Unit,
+    onSaveApk: () -> Unit,
+    onShareApk: () -> Unit
 ) {
     when (msg) {
         is UserIdea -> UserBubble(msg.text)
         is PromptMsg -> PromptBubble(msg, { onCopyPrompt(msg.prompt) })
         is UserPayload -> PayloadBubble(msg)
         is ParseMsg -> ParseBubble(msg, onApply, onPush)
-        is PushMsg -> PushBubble(msg, onOpenRun, onDownloadApk)
+        is PushMsg -> PushBubble(msg, onOpenRun, onCopyErrors, onSaveMd, onSaveApk, onShareApk)
         is NoteMsg -> NoteBubble(msg)
     }
 }

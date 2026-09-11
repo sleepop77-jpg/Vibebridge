@@ -38,14 +38,12 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import dev.vibebridge.core.ChatMsg
 import dev.vibebridge.core.NoteKind
 import dev.vibebridge.core.NoteMsg
 import dev.vibebridge.core.ParseMsg
 import dev.vibebridge.core.PromptMsg
 import dev.vibebridge.core.PushMsg
 import dev.vibebridge.core.PushState
-import dev.vibebridge.core.UserIdea
 import dev.vibebridge.core.UserPayload
 import dev.vibebridge.ui.theme.Accent
 import dev.vibebridge.ui.theme.ButtonGreen
@@ -120,9 +118,9 @@ fun UserBubble(text: String) {
         ) {
             Column {
                 Text(
-                    text, 
-                    style = VbType.bodyLarge, 
-                    color = Text, 
+                    text,
+                    style = VbType.bodyLarge,
+                    color = Text,
                     maxLines = if (expanded || !isLong) Int.MAX_VALUE else 4,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -287,7 +285,14 @@ private fun TagChip(text: String, color: Color) {
 }
 
 @Composable
-fun PushBubble(msg: PushMsg, onOpenRun: () -> Unit, onDownloadApk: () -> Unit) {
+fun PushBubble(
+    msg: PushMsg,
+    onOpenRun: () -> Unit,
+    onCopyErrors: () -> Unit,
+    onSaveMd: () -> Unit,
+    onSaveApk: () -> Unit,
+    onShareApk: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -298,7 +303,10 @@ fun PushBubble(msg: PushMsg, onOpenRun: () -> Unit, onDownloadApk: () -> Unit) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("PUSH", style = VbMono.Label, color = TextDim)
             when (msg.state) {
-                PushState.DONE -> TagChip(if (msg.conclusion == "success") "CI PASSED" else "CI ${msg.conclusion?.uppercase() ?: "DONE"}", if (msg.conclusion == "success") Accent else Warning)
+                PushState.DONE -> TagChip(
+                    if (msg.conclusion == "success") "CI PASSED" else "CI ${msg.conclusion?.uppercase() ?: "DONE"}",
+                    if (msg.conclusion == "success") Accent else Warning
+                )
                 PushState.FAILED -> TagChip("FAILED", Danger)
                 else -> TagChip(msg.state.name, TextFaint)
             }
@@ -316,7 +324,17 @@ fun PushBubble(msg: PushMsg, onOpenRun: () -> Unit, onDownloadApk: () -> Unit) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     GhostPillButton("OPEN RUN", onOpenRun)
                     if (msg.conclusion == "success") {
-                        GreenPillButton("DOWNLOAD APK", onDownloadApk)
+                        GhostPillButton("SAVE APK", onSaveApk)
+                    } else {
+                        GhostPillButton("COPY ERRORS", onCopyErrors)
+                    }
+                }
+                Spacer(Modifier.height(6.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (msg.conclusion == "success") {
+                        GhostPillButton("SHARE APK", onShareApk)
+                    } else {
+                        GhostPillButton("SAVE .MD", onSaveMd)
                     }
                 }
             }
