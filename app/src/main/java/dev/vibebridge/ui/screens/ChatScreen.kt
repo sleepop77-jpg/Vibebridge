@@ -177,6 +177,11 @@ fun ChatScreen(vm: ChatViewModel, openSettings: () -> Unit) {
                                         runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
                                     }
                                 }
+                            },
+                            onDownloadApk = {
+                                if (msg is PushMsg) {
+                                    msg.runId?.let { vm.downloadAndShareApk(it) }
+                                }
                             }
                         )
                     }
@@ -227,14 +232,15 @@ private fun Bubble(
     onCopyPrompt: (String) -> Unit,
     onApply: () -> Unit,
     onPush: () -> Unit,
-    onOpenRun: () -> Unit
+    onOpenRun: () -> Unit,
+    onDownloadApk: () -> Unit
 ) {
     when (msg) {
         is UserIdea -> UserBubble(msg.text)
         is PromptMsg -> PromptBubble(msg, { onCopyPrompt(msg.prompt) })
         is UserPayload -> PayloadBubble(msg)
         is ParseMsg -> ParseBubble(msg, onApply, onPush)
-        is PushMsg -> PushBubble(msg, onOpenRun)
+        is PushMsg -> PushBubble(msg, onOpenRun, onDownloadApk)
         is NoteMsg -> NoteBubble(msg)
     }
 }

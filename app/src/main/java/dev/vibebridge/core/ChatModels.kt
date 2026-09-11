@@ -24,7 +24,8 @@ data class PushMsg(
     val sha: String?,
     val note: String?,
     val conclusion: String?,
-    val runUrl: String?
+    val runUrl: String?,
+    val runId: Long? = null
 ) : ChatMsg
 
 enum class NoteKind { INFO, WARN, ERROR }

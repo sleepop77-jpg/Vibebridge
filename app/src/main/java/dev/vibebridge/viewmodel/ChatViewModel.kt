@@ -1,6 +1,8 @@
 package dev.vibebridge.viewmodel
 
 import android.app.Application
+import android.content.Intent
+import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dev.vibebridge.core.BridgeOp
@@ -24,6 +26,7 @@ import dev.vibebridge.core.VbClipboard
 import dev.vibebridge.core.VbResult
 import dev.vibebridge.core.Workspace
 import java.io.File
+import java.util.zip.ZipInputStream
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -143,7 +146,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
         val id = nextId()
-        append(PushMsg(id, PushState.PREPARING, null, null, null, null))
+        append(PushMsg(id, PushState.PREPARING, null, null, null, null, null))
         viewModelScope.launch {
             updatePush(id) { it.copy(state = PushState.COMMITTING, note = "uploading blobs and tree") }
             val msg = "feat: vibebridge chat push (${ops.size} ops)"
@@ -169,13 +172,70 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                         }
                         val done = runs.firstOrNull() ?: continue
                         history.setCi(recId, done.conclusion)
-                        updatePush(id) { it.copy(state = PushState.DONE, conclusion = done.conclusion, note = "run finished") }
+                        updatePush(id) { it.copy(state = PushState.DONE, conclusion = done.conclusion, note = "run finished", runId = done.id) }
                         return@launch
                     }
                     updatePush(id) { it.copy(state = PushState.DONE, conclusion = "unknown", note = "poll window ended") }
                 }
             }
         }
+    }
+
+    fun downloadAndShareApk(runId: Long) {
+        val (owner, repo) = prefs.splitRepo()
+        if (owner.isBlank() || secure.pat.isBlank()) return
+        
+        append(NoteMsg(nextId(), "fetching artifact...", NoteKind.INFO))
+        viewModelScope.launch {
+            val artsResult = github.artifacts(secure.pat, owner, repo, runId)
+            val arts = (artsResult as? VbResult.Ok)?.value
+            if (arts.isNullOrEmpty()) {
+                append(NoteMsg(nextId(), "no artifacts found for this run", NoteKind.WARN))
+                return@launch
+            }
+            val artifact = arts.first()
+            val zipFile = File(getApplication<Application>().filesDir, "out/artifact-$runId.zip")
+            val dlResult = github.downloadArtifact(secure.pat, artifact.downloadUrl, zipFile)
+            if (dlResult is VbResult.Err) {
+                append(NoteMsg(nextId(), "download failed: ${dlResult.message}", NoteKind.ERROR))
+                return@launch
+            }
+            
+            val apkDir = File(getApplication<Application>().filesDir, "out/apk-$runId")
+            val apkFile = extractApk(zipFile, apkDir)
+            if (apkFile == null) {
+                append(NoteMsg(nextId(), "no apk found in artifact zip", NoteKind.WARN))
+                return@launch
+            }
+            
+            val ctx = getApplication<Application>()
+            val uri = FileProvider.getUriForFile(ctx, ctx.packageName + ".vbfiles", apkFile)
+            val share = Intent(Intent.ACTION_SEND).apply {
+                type = "application/vnd.android.package-archive"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            share.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            ctx.startActivity(Intent.createChooser(share, "Share APK").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
+    }
+
+    private fun extractApk(zipFile: File, outDir: File): File? {
+        outDir.mkdirs()
+        var apkFile: File? = null
+        ZipInputStream(zipFile.inputStream()).use { zis ->
+            var entry = zis.nextEntry
+            while (entry != null) {
+                if (!entry.isDirectory && entry.name.endsWith(".apk")) {
+                    val outFile = File(outDir, entry.name.substringAfterLast('/'))
+                    outFile.outputStream().use { zis.copyTo(it) }
+                    apkFile = outFile
+                }
+                zis.closeEntry()
+                entry = zis.nextEntry
+            }
+        }
+        return apkFile
     }
 
     fun newChat() {

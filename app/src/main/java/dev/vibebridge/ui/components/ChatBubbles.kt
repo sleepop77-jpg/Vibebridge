@@ -287,7 +287,7 @@ private fun TagChip(text: String, color: Color) {
 }
 
 @Composable
-fun PushBubble(msg: PushMsg, onOpenRun: () -> Unit) {
+fun PushBubble(msg: PushMsg, onOpenRun: () -> Unit, onDownloadApk: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -313,7 +313,12 @@ fun PushBubble(msg: PushMsg, onOpenRun: () -> Unit) {
             PushState.DONE -> {
                 msg.sha?.let { Text("commit ${it.take(7)}", style = VbMono.Code, color = Text) }
                 Spacer(Modifier.height(8.dp))
-                GhostPillButton("OPEN RUN", onOpenRun)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    GhostPillButton("OPEN RUN", onOpenRun)
+                    if (msg.conclusion == "success") {
+                        GreenPillButton("DOWNLOAD APK", onDownloadApk)
+                    }
+                }
             }
             PushState.FAILED -> {
                 Text(msg.note ?: "push failed", style = VbMono.CodeSmall, color = Danger)

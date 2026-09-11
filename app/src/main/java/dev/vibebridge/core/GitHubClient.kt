@@ -8,6 +8,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 class GitHubClient {
@@ -146,29 +147,6 @@ class GitHubClient {
             String(android.util.Base64.decode(content, android.util.Base64.DEFAULT), Charsets.UTF_8)
         }
 
-    suspend fun fetchAllFiles(pat: String, owner: String, repo: String, branch: String): VbResult<Map<String, String>> {
-        val ref = raw(pat, "GET", "/repos/$owner/$repo/git/ref/heads/$branch", null)
-            .getOrNull() ?: return VbResult.Err("Cannot resolve branch $branch.")
-        val refSha = JSONObject(ref.body).getJSONObject("object").getString("sha")
-        val commit = raw(pat, "GET", "/repos/$owner/$repo/git/commits/$refSha", null)
-            .getOrNull() ?: return VbResult.Err("Cannot read head commit.")
-        val treeSha = JSONObject(commit.body).getJSONObject("tree").getString("sha")
-        val tree = raw(pat, "GET", "/repos/$owner/$repo/git/trees/$treeSha?recursive=1", null)
-            .getOrNull() ?: return VbResult.Err("Cannot read file tree.")
-        val entries = JSONObject(tree.body).optJSONArray("tree") ?: JSONArray()
-        val out = linkedMapOf<String, String>()
-        for (i in 0 until entries.length()) {
-            val e = entries.getJSONObject(i)
-            if (e.optString("type") != "blob") continue
-            if (e.optLong("size", 0L) > 512000L) continue
-            val blob = raw(pat, "GET", "/repos/$owner/$repo/git/blobs/${e.optString("sha")}", null)
-                .getOrNull() ?: continue
-            val content = JSONObject(blob.body).optString("content", "")
-            out[e.optString("path")] = String(android.util.Base64.decode(content, android.util.Base64.DEFAULT), Charsets.UTF_8)
-        }
-        return VbResult.Ok(out)
-    }
-
     suspend fun runs(pat: String, owner: String, repo: String, branch: String): VbResult<List<RunInfo>> =
         raw(pat, "GET", "/repos/$owner/$repo/actions/runs?branch=$branch&per_page=5", null).map {
             val out = mutableListOf<RunInfo>()
@@ -195,4 +173,26 @@ class GitHubClient {
             }
             out
         }
+
+    suspend fun downloadArtifact(pat: String, url: String, outFile: File): VbResult<File> = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url(url)
+                .header("Authorization", "Bearer $pat")
+                .header("Accept", "application/vnd.github+json")
+                .build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext VbResult.Err("Download failed: HTTP ${response.code}")
+                outFile.parentFile?.mkdirs()
+                response.body?.byteStream()?.use { input ->
+                    outFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                } ?: return@withContext VbResult.Err("Empty response body")
+                VbResult.Ok(outFile)
+            }
+        } catch (e: Exception) {
+            VbResult.Err("Network failure: ${e.message}")
+        }
+    }
 }
