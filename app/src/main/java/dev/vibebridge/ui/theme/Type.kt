@@ -10,7 +10,7 @@ private val sans = FontFamily.Default
 private val mono = FontFamily.Monospace
 
 val VbType = Typography(
-    displaySmall = TextStyle(fontFamily = sans, fontSize = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.sp),
+    displaySmall = TextStyle(fontFamily = sans, fontSize = 24.sp, fontWeight = FontWeight.Bold),
     titleLarge = TextStyle(fontFamily = sans, fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
     titleMedium = TextStyle(fontFamily = sans, fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
     titleSmall = TextStyle(fontFamily = sans, fontSize = 13.sp, fontWeight = FontWeight.SemiBold),

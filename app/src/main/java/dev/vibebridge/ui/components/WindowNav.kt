@@ -1,6 +1,5 @@
 package dev.vibebridge.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,18 +12,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Divider
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import dev.vibebridge.ui.theme.Accent
-import dev.vibebridge.ui.theme.Border
-import dev.vibebridge.ui.theme.Inset
+import dev.vibebridge.ui.theme.Text
 import dev.vibebridge.ui.theme.TextFaint
+import dev.vibebridge.ui.theme.WindowBorder
 
 enum class VbTab(val label: String, val icon: VbIconKind) {
     CHAT("CHAT", VbIcon.BOT),
@@ -33,18 +31,17 @@ enum class VbTab(val label: String, val icon: VbIconKind) {
 }
 
 @Composable
-fun VbBottomBar(
+fun WindowNav(
     current: VbTab,
     onSelect: (VbTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth().navigationBarsPadding()) {
-        Divider(color = Border, thickness = 1.dp)
+        Divider(color = WindowBorder, thickness = 1.dp)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
-                .background(Inset),
+                .height(52.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -52,27 +49,27 @@ fun VbBottomBar(
                 val sel = tab == current
                 Column(
                     modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp)
-                        .clickable { onSelect(tab) },
+                        .semantics { contentDescription = tab.label }
+                        .clip(CircleShape)
+                        .clickable { onSelect(tab) }
+                        .padding(horizontal = 18.dp, vertical = 6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
-                    if (sel) {
-                        Box(Modifier.size(4.dp).clip(CircleShape).background(Accent))
-                    } else {
-                        Box(Modifier.size(4.dp))
-                    }
-                    VbIconView(icon = tab.icon, color = if (sel) Accent else TextFaint, size = 18.dp)
-                    Text(
-                        tab.label,
-                        fontSize = 9.sp,
-                        fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Medium,
-                        color = if (sel) Accent else TextFaint,
-                        modifier = Modifier.padding(top = 2.dp)
+                    VbIconView(icon = tab.icon, color = if (sel) Text else TextFaint, size = 19.dp)
+                    Box(
+                        Modifier
+                            .size(3.dp)
+                            .clip(CircleShape)
+                            .then(
+                                if (sel) Modifier.backgroundAccent() else Modifier
+                            )
                     )
                 }
             }
         }
     }
 }
+
+private fun Modifier.backgroundAccent(): Modifier =
+    this.then(androidx.compose.foundation.background(Accent, CircleShape))

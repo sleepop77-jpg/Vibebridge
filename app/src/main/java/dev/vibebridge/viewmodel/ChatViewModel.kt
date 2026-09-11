@@ -68,6 +68,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setInput(s: String) = _ui.update { it.copy(input = s) }
 
+fun currentTarget(): String = prefs.target
+
+fun setTarget(t: String) { prefs.target = t }
+
     fun send() {
         val text = _ui.value.input.trim()
         if (text.isEmpty()) return

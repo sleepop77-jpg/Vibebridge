@@ -22,6 +22,9 @@ class Prefs(ctx: Context) {
     var autoClip: Boolean
         get() = p.getBoolean("auto_clip", true)
         set(v) = p.edit().putBoolean("auto_clip", v).apply()
+    var stillSky: Boolean
+        get() = p.getBoolean("still_sky", false)
+        set(v) = p.edit().putBoolean("still_sky", v).apply()
     var mirrorUri: String
         get() = p.getString("mirror_uri", "") ?: ""
         set(v) = p.edit().putString("mirror_uri", v).apply()

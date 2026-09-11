@@ -82,10 +82,15 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
             VbPanel(title = "PARSER AND CLIPBOARD") {
                 VbToggle(label = "STRICT MODE: reject payloads without sentinel", checked = ui.strict, onChange = vm::setStrict)
                 VbToggle(
-                    label = "AUTO-DETECT bridge payloads on clipboard",
-                    checked = autoClip,
-                    onChange = { autoClip = it; vm.prefs.autoClip = it }
-                )
+label = "AUTO-DETECT bridge payloads on clipboard",
+checked = autoClip,
+onChange = { autoClip = it; vm.prefs.autoClip = it }
+)
+VbToggle(
+label = "STILL SKY: pause cloud animation (battery saver)",
+checked = stillSky,
+onChange = { stillSky = it; vm.prefs.stillSky = it }
+)
             }
         }
         Stagger(4) {
