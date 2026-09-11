@@ -43,6 +43,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
     val ui by vm.ui.collectAsState()
     var confirmDisconnect by remember { mutableStateOf(false) }
     var autoClip by remember { mutableStateOf(vm.prefs.autoClip) }
+    var stillSky by remember { mutableStateOf(vm.prefs.stillSky) }
     var target by remember { mutableStateOf(vm.prefs.target) }
 
     Column(
@@ -56,7 +57,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
         Stagger(0) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 VbIconButton(icon = VbIcon.BACK, description = "Back", onClick = onBack)
-                Text("SETTINGS", color = Text, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text(text = "SETTINGS", color = Text, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
         }
         Stagger(1) {
@@ -82,15 +83,15 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
             VbPanel(title = "PARSER AND CLIPBOARD") {
                 VbToggle(label = "STRICT MODE: reject payloads without sentinel", checked = ui.strict, onChange = vm::setStrict)
                 VbToggle(
-label = "AUTO-DETECT bridge payloads on clipboard",
-checked = autoClip,
-onChange = { autoClip = it; vm.prefs.autoClip = it }
-)
-VbToggle(
-label = "STILL SKY: pause cloud animation (battery saver)",
-checked = stillSky,
-onChange = { stillSky = it; vm.prefs.stillSky = it }
-)
+                    label = "AUTO-DETECT bridge payloads on clipboard",
+                    checked = autoClip,
+                    onChange = { autoClip = it; vm.prefs.autoClip = it }
+                )
+                VbToggle(
+                    label = "STILL SKY: pause cloud animation (battery saver)",
+                    checked = stillSky,
+                    onChange = { stillSky = it; vm.prefs.stillSky = it }
+                )
             }
         }
         Stagger(4) {
@@ -105,7 +106,7 @@ onChange = { stillSky = it; vm.prefs.stillSky = it }
                 VbStat("VERSION", BuildConfig.VERSION_NAME)
                 VbStat("BUILD TYPE", BuildConfig.BUILD_TYPE)
                 Text(
-                    "VibeBridge moves code between free AI chats and your repository. No inference runs inside this app.",
+                    text = "VibeBridge moves code between free AI chats and your repository. No inference runs inside this app.",
                     color = TextDim,
                     fontSize = 12.sp
                 )
