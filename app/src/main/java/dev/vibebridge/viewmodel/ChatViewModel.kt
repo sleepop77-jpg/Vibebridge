@@ -365,6 +365,34 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         return apkFile
     }
 
+    fun templateOptions(): List<Pair<String, String>> =
+        history.templates().map { it.name to it.idea } + PromptTemplates.BUILTINS.map { it.name to it.idea }
+
+    fun sandboxFiles(): List<String> = workspace.tree()
+
+    fun attachFile(path: String) {
+        val content = workspace.read(path)
+        if (content == null) {
+            append(NoteMsg(nextId(), "cannot read $path", NoteKind.WARN))
+            return
+        }
+        val ok = VbClipboard.copy(getApplication(), "vibe-file", content)
+        append(
+            NoteMsg(
+                nextId(),
+                if (ok) "copied $path to clipboard — paste it into your AI chat" else "clipboard unavailable",
+                if (ok) NoteKind.INFO else NoteKind.ERROR
+            )
+        )
+    }
+
+    fun currentStrict(): Boolean = prefs.strict
+
+    fun toggleStrict(): Boolean {
+        prefs.strict = !prefs.strict
+        return prefs.strict
+    }
+
     fun newChat() {
         pendingOps = null
         _ui.update { Ui() }

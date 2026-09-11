@@ -23,8 +23,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -71,15 +69,21 @@ import dev.vibebridge.ui.theme.VbType
 import dev.vibebridge.ui.theme.WindowBorder
 import dev.vibebridge.viewmodel.ChatViewModel
 
-private val TARGETS = listOf("QWEN STUDIO", "CHATGPT", "GEMINI")
+private val MODELS = listOf(
+    "QWEN STUDIO" to "free • bridge-tuned",
+    "CHATGPT" to "no markdown fences",
+    "GEMINI" to "small hunks"
+)
 
 @Composable
 fun ChatScreen(vm: ChatViewModel, openSettings: () -> Unit) {
     val ctx = LocalContext.current
     val ui by vm.ui.collectAsState()
     val listState = rememberLazyListState()
-    var targetMenu by remember { mutableStateOf(false) }
     var target by remember { mutableStateOf(vm.currentTarget()) }
+    var strict by remember { mutableStateOf(vm.currentStrict()) }
+    val templates = remember { vm.templateOptions() }
+    val files = remember(ui.messages.size) { vm.sandboxFiles() }
 
     LaunchedEffect(Unit) { vm.startClipWatch() }
     LaunchedEffect(ui.messages.size, ui.thinking) {
@@ -95,28 +99,7 @@ fun ChatScreen(vm: ChatViewModel, openSettings: () -> Unit) {
                 .padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box {
-                Box(
-                    modifier = Modifier
-                        .background(GhostPill, RoundedCornerShape(16.dp))
-                        .clickable { targetMenu = true }
-                        .padding(horizontal = 12.dp, vertical = 7.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(target, color = Text, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                        Spacer(Modifier.padding(horizontal = 3.dp))
-                        Text("▾", color = TextDim, fontSize = 10.sp)
-                    }
-                }
-                DropdownMenu(expanded = targetMenu, onDismissRequest = { targetMenu = false }) {
-                    TARGETS.forEach { t ->
-                        DropdownMenuItem(
-                            text = { Text(t, color = Text, fontSize = 13.sp) },
-                            onClick = { target = t; vm.setTarget(t); targetMenu = false }
-                        )
-                    }
-                }
-            }
+            VbWordmark(height = 18.dp)
             Spacer(Modifier.weight(1f))
             Box(
                 modifier = Modifier
@@ -220,6 +203,15 @@ fun ChatScreen(vm: ChatViewModel, openSettings: () -> Unit) {
             onSend = vm::send,
             onClip = vm::clipIntoInput,
             sendEnabled = ui.input.isNotBlank() && !ui.thinking,
+            models = MODELS,
+            currentModel = target,
+            onModel = { t -> target = t; vm.setTarget(t) },
+            templates = templates,
+            onTemplate = { name -> templates.firstOrNull { it.first == name }?.second?.let { vm.setInput(it) } },
+            files = files,
+            onFile = { vm.attachFile(it) },
+            strict = strict,
+            onStrict = { strict = vm.toggleStrict() },
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
         )
     }

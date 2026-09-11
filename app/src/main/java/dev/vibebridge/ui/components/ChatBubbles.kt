@@ -3,6 +3,7 @@ package dev.vibebridge.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,9 +15,12 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -100,6 +104,27 @@ fun GreenPillButton(
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Text(label, color = Text, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun ComposerPill(
+    label: String,
+    onClick: () -> Unit,
+    active: Boolean = false
+) {
+    Box(
+        modifier = Modifier
+            .border(1.dp, if (active) Accent else WindowBorder, RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 5.dp)
+    ) {
+        Text(
+            label,
+            color = if (active) Accent else TextDim,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
 
@@ -389,31 +414,33 @@ fun VbComposer(
     onSend: () -> Unit,
     onClip: () -> Unit,
     sendEnabled: Boolean,
+    models: List<Pair<String, String>>,
+    currentModel: String,
+    onModel: (String) -> Unit,
+    templates: List<Pair<String, String>>,
+    onTemplate: (String) -> Unit,
+    files: List<String>,
+    onFile: (String) -> Unit,
+    strict: Boolean,
+    onStrict: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    var modelMenu by remember { mutableStateOf(false) }
+    var tplMenu by remember { mutableStateOf(false) }
+    var fileMenu by remember { mutableStateOf(false) }
+
+    Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(ComposerBg, RoundedCornerShape(28.dp))
-            .border(1.dp, WindowBorder, RoundedCornerShape(28.dp))
-            .padding(horizontal = 8.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .background(ComposerBg, RoundedCornerShape(24.dp))
+            .border(1.dp, WindowBorder, RoundedCornerShape(24.dp))
+            .padding(horizontal = 10.dp, vertical = 8.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(34.dp)
-                .background(GhostPill, CircleShape)
-                .clickable(onClick = onClip),
-            contentAlignment = Alignment.Center
-        ) {
-            VbIconView(icon = VbIcon.GRAB, color = TextDim, size = 15.dp)
-        }
-        Spacer(Modifier.width(6.dp))
         TextField(
             value = value,
             onValueChange = onValue,
             placeholder = { Text("Describe your change or paste AI output", color = TextFaint, fontSize = 13.sp) },
-            maxLines = 3,
+            maxLines = 4,
             textStyle = VbType.bodyMedium,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             colors = TextFieldDefaults.colors(
@@ -425,17 +452,66 @@ fun VbComposer(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent
             ),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.fillMaxWidth()
         )
-        Spacer(Modifier.width(6.dp))
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .background(if (sendEnabled) PureWhite else GhostPill, CircleShape)
-                .clickable(enabled = sendEnabled, onClick = onSend),
-            contentAlignment = Alignment.Center
-        ) {
-            VbIconView(icon = ArrowUp, color = if (sendEnabled) PureBlack else TextFaint, size = 16.dp)
+        Spacer(Modifier.height(6.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box {
+                    ComposerPill("$currentModel ▾", { modelMenu = true })
+                    DropdownMenu(expanded = modelMenu, onDismissRequest = { modelMenu = false }) {
+                        models.forEach { m ->
+                            DropdownMenuItem(
+                                text = {
+                                    Column {
+                                        Text(m.first, color = Text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                                        Text(m.second, color = TextFaint, fontSize = 10.sp)
+                                    }
+                                },
+                                onClick = { onModel(m.first); modelMenu = false }
+                            )
+                        }
+                    }
+                }
+                ComposerPill("PASTE", onClip)
+                Box {
+                    ComposerPill("TEMPLATES ▾", { tplMenu = true })
+                    DropdownMenu(expanded = tplMenu, onDismissRequest = { tplMenu = false }) {
+                        templates.forEach { t ->
+                            DropdownMenuItem(
+                                text = { Text(t.first, color = Text, fontSize = 13.sp) },
+                                onClick = { onTemplate(t.first); tplMenu = false }
+                            )
+                        }
+                    }
+                }
+                Box {
+                    ComposerPill("FILE ▾", { fileMenu = true })
+                    DropdownMenu(expanded = fileMenu, onDismissRequest = { fileMenu = false }) {
+                        files.take(30).forEach { f ->
+                            DropdownMenuItem(
+                                text = { Text(f, color = Text, fontSize = 12.sp) },
+                                onClick = { onFile(f); fileMenu = false }
+                            )
+                        }
+                    }
+                }
+                ComposerPill(if (strict) "STRICT ON" else "STRICT", onStrict, active = strict)
+            }
+            Spacer(Modifier.width(8.dp))
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(if (sendEnabled) PureWhite else GhostPill, CircleShape)
+                    .clickable(enabled = sendEnabled, onClick = onSend),
+                contentAlignment = Alignment.Center
+            ) {
+                VbIconView(icon = ArrowUp, color = if (sendEnabled) PureBlack else TextFaint, size = 16.dp)
+            }
         }
     }
 }
