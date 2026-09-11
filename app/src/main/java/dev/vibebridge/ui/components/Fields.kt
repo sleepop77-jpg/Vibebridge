@@ -2,7 +2,9 @@ package dev.vibebridge.ui.components
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -13,27 +15,26 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import dev.vibebridge.ui.theme.Amber
-import dev.vibebridge.ui.theme.Bg
-import dev.vibebridge.ui.theme.Border
-import dev.vibebridge.ui.theme.CardAlt
-import dev.vibebridge.ui.theme.PureBlack
-import dev.vibebridge.ui.theme.Red
-import dev.vibebridge.ui.theme.Text
-import dev.vibebridge.ui.theme.TextDim
-import dev.vibebridge.ui.theme.TextFaint
+import dev.vibebridge.ui.theme.GhAccent
+import dev.vibebridge.ui.theme.GhBorder
+import dev.vibebridge.ui.theme.GhBorderMuted
+import dev.vibebridge.ui.theme.GhBtnGreen
+import dev.vibebridge.ui.theme.GhDangerBright
+import dev.vibebridge.ui.theme.GhInset
+import dev.vibebridge.ui.theme.GhTextDisabled
+import dev.vibebridge.ui.theme.GhTextPrimary
+import dev.vibebridge.ui.theme.GhTextSecondary
+import dev.vibebridge.ui.theme.PureWhite
 
-private val fieldShape = RoundedCornerShape(12.dp)
+private val fieldShape = RoundedCornerShape(8.dp)
 
 @Composable
 fun VbField(
@@ -51,7 +52,7 @@ fun VbField(
         Text(
             label,
             style = MaterialTheme.typography.labelLarge,
-            color = TextDim,
+            color = GhTextSecondary,
             modifier = Modifier.padding(bottom = 6.dp, start = 2.dp)
         )
         TextField(
@@ -59,20 +60,20 @@ fun VbField(
             onValueChange = onValueChange,
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, if (error != null) Red else Border, fieldShape),
-            placeholder = { Text(placeholder, color = TextFaint) },
+                .border(1.dp, if (error != null) GhDangerBright else GhBorder, fieldShape),
+            placeholder = { Text(placeholder, color = GhTextDisabled) },
             singleLine = singleLine,
             visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             shape = fieldShape,
             textStyle = MaterialTheme.typography.bodyLarge,
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = Bg,
-                unfocusedContainerColor = Bg,
-                disabledContainerColor = Bg,
-                focusedTextColor = Text,
-                unfocusedTextColor = Text,
-                cursorColor = Amber,
+                focusedContainerColor = GhInset,
+                unfocusedContainerColor = GhInset,
+                disabledContainerColor = GhInset,
+                focusedTextColor = GhTextPrimary,
+                unfocusedTextColor = GhTextPrimary,
+                cursorColor = GhAccent,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent
@@ -82,7 +83,7 @@ fun VbField(
             Text(
                 error,
                 style = MaterialTheme.typography.labelMedium,
-                color = Red,
+                color = GhDangerBright,
                 modifier = Modifier.padding(top = 4.dp, start = 2.dp)
             )
         }
@@ -105,7 +106,7 @@ fun VbToggle(
         Text(
             label,
             style = MaterialTheme.typography.bodyLarge,
-            color = Text,
+            color = GhTextPrimary,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.weight(1f)
         )
@@ -113,11 +114,11 @@ fun VbToggle(
             checked = checked,
             onCheckedChange = onChange,
             colors = SwitchDefaults.colors(
-                checkedTrackColor = Amber,
-                checkedThumbColor = PureBlack,
-                uncheckedTrackColor = CardAlt,
-                uncheckedThumbColor = TextDim,
-                uncheckedBorderColor = Border
+                checkedTrackColor = GhBtnGreen,
+                checkedThumbColor = PureWhite,
+                uncheckedTrackColor = GhBorderMuted,
+                uncheckedThumbColor = GhTextSecondary,
+                uncheckedBorderColor = GhBorder
             )
         )
     }

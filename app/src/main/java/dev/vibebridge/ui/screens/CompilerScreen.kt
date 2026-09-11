@@ -36,9 +36,9 @@ import dev.vibebridge.ui.components.VbIcon
 import dev.vibebridge.ui.components.VbPanel
 import dev.vibebridge.ui.components.VbRowTile
 import dev.vibebridge.ui.components.VbSegmented
-import dev.vibebridge.ui.theme.AmberHi
-import dev.vibebridge.ui.theme.Bg
-import dev.vibebridge.ui.theme.GreenHi
+import dev.vibebridge.ui.theme.GhCanvas
+import dev.vibebridge.ui.theme.GhSuccessBright
+import dev.vibebridge.ui.theme.GhTextPrimary
 import dev.vibebridge.viewmodel.AppViewModel
 
 @Composable
@@ -50,10 +50,10 @@ fun CompilerScreen(vm: AppViewModel) {
     val compiled = remember(idea, target) { if (idea.isBlank()) "" else PromptTemplates.compile(idea, target) }
 
     Column(
-        modifier = Modifier.fillMaxSize().background(Bg).verticalScroll(rememberScrollState()).padding(20.dp),
+        modifier = Modifier.fillMaxSize().background(GhCanvas).verticalScroll(rememberScrollState()).padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Stagger(0) { Text("COMPILE", style = MaterialTheme.typography.displaySmall, color = AmberHi) }
+        Stagger(0) { Text("COMPILE", style = MaterialTheme.typography.displaySmall, color = GhTextPrimary) }
         ui.infoBanner?.let { b -> VbBanner(kind = BannerKind.INFO, text = b, modifier = Modifier.fillMaxWidth()) }
         Stagger(1) {
             VbPanel(title = "IDEA") {
@@ -71,7 +71,7 @@ fun CompilerScreen(vm: AppViewModel) {
                     VbEmpty(icon = VbIcon.CODE, title = "Describe the change to compile a prompt with the bridge contract injected.", actionLabel = "LOAD FIRST BUILTIN", onAction = { idea = PromptTemplates.BUILTINS.first().idea })
                 } else {
                     Column(modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp).verticalScroll(rememberScrollState())) {
-                        Text(compiled, style = MaterialTheme.typography.labelMedium, color = GreenHi)
+                        Text(compiled, style = MaterialTheme.typography.labelMedium, color = GhSuccessBright)
                     }
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {

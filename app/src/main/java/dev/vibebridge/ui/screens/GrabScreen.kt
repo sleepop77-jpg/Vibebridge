@@ -2,6 +2,7 @@ package dev.vibebridge.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -26,36 +29,46 @@ import dev.vibebridge.ui.components.VbBanner
 import dev.vibebridge.ui.components.VbButton
 import dev.vibebridge.ui.components.VbButtonSecondary
 import dev.vibebridge.ui.components.VbField
+import dev.vibebridge.ui.components.VbIcon
+import dev.vibebridge.ui.components.VbIconButton
 import dev.vibebridge.ui.components.VbPanel
 import dev.vibebridge.ui.components.VbStat
 import dev.vibebridge.ui.components.VbTag
-import dev.vibebridge.ui.theme.Amber
-import dev.vibebridge.ui.theme.AmberLo
-import dev.vibebridge.ui.theme.Bg
-import dev.vibebridge.ui.theme.Green
-import dev.vibebridge.ui.theme.RedHi
-import dev.vibebridge.ui.theme.Text
-import dev.vibebridge.ui.theme.TextDim
+import dev.vibebridge.ui.theme.GhAccent
+import dev.vibebridge.ui.theme.GhAttention
+import dev.vibebridge.ui.theme.GhCanvas
+import dev.vibebridge.ui.theme.GhDangerBright
+import dev.vibebridge.ui.theme.GhSuccess
+import dev.vibebridge.ui.theme.GhTextPrimary
+import dev.vibebridge.ui.theme.GhTextSecondary
 import dev.vibebridge.viewmodel.GrabViewModel
 
 private fun statusTag(s: OpStatus): Pair<String, Color> = when (s) {
-    OpStatus.CREATE -> "CREATE" to Green
-    OpStatus.OVERWRITE -> "OVERWRITE" to Amber
-    OpStatus.EDIT -> "EDIT" to Green
-    OpStatus.EDIT_PARTIAL -> "PARTIAL" to AmberLo
-    OpStatus.DELETE -> "DELETE" to RedHi
-    OpStatus.MISSING -> "MISSING" to RedHi
-    OpStatus.NO_MATCH -> "NO MATCH" to RedHi
+    OpStatus.CREATE -> "CREATE" to GhSuccess
+    OpStatus.OVERWRITE -> "OVERWRITE" to GhAccent
+    OpStatus.EDIT -> "EDIT" to GhSuccess
+    OpStatus.EDIT_PARTIAL -> "PARTIAL" to GhAttention
+    OpStatus.DELETE -> "DELETE" to GhDangerBright
+    OpStatus.MISSING -> "MISSING" to GhDangerBright
+    OpStatus.NO_MATCH -> "NO MATCH" to GhDangerBright
 }
 
 @Composable
-fun GrabScreen(vm: GrabViewModel, gotoPush: () -> Unit) {
+fun GrabScreen(vm: GrabViewModel, gotoPush: () -> Unit, gotoHome: () -> Unit) {
     val ui by vm.ui.collectAsState()
     Column(
-        modifier = Modifier.fillMaxSize().background(Bg).verticalScroll(rememberScrollState()).padding(20.dp),
+        modifier = Modifier.fillMaxSize().background(GhCanvas).verticalScroll(rememberScrollState()).padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Stagger(0) { Text("GRAB", style = MaterialTheme.typography.displaySmall, color = Amber) }
+        Stagger(0) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                VbIconButton(icon = VbIcon.BACK, description = "Back to home", onClick = gotoHome)
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Text("GRAB", style = MaterialTheme.typography.displaySmall, color = GhTextPrimary)
+                }
+                Spacer(Modifier.width(40.dp))
+            }
+        }
         if (vm.strict) VbBanner(kind = BannerKind.WARN, text = "Strict mode is on. Payloads without the sentinel are rejected.")
         Stagger(1) { VbButtonSecondary(text = "READ CLIPBOARD", onClick = vm::readClipboard, modifier = Modifier.fillMaxWidth()) }
         Stagger(2) { VbField(label = "AI OUTPUT", value = ui.pasted, onValueChange = vm::setPasted, placeholder = "paste the bridge payload here", singleLine = false) }
@@ -68,9 +81,9 @@ fun GrabScreen(vm: GrabViewModel, gotoPush: () -> Unit) {
                         val tag = statusTag(rep.status)
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             VbTag(tag.first, tag.second)
-                            Column(modifier = Modifier.fillMaxWidth().padding(start = 10.dp)) {
-                                Text(rep.path, style = MaterialTheme.typography.labelLarge, color = Text)
-                                Text(rep.detail, style = MaterialTheme.typography.labelMedium, color = TextDim)
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(rep.path, style = MaterialTheme.typography.labelLarge, color = GhTextPrimary)
+                                Text(rep.detail, style = MaterialTheme.typography.labelMedium, color = GhTextSecondary)
                             }
                         }
                         Spacer(Modifier.height(8.dp))
@@ -91,8 +104,8 @@ fun GrabScreen(vm: GrabViewModel, gotoPush: () -> Unit) {
         }
         Stagger(6) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                VbButton(text = "APPLY LOCALLY", onClick = vm::apply, modifier = Modifier.fillMaxWidth().padding(end = 5.dp), enabled = ui.parsed != null && ui.parsed!!.ops.isNotEmpty(), disabledReason = "Parse a payload first.")
-                VbButtonSecondary(text = "CONTINUE TO PUSH", onClick = gotoPush, modifier = Modifier.fillMaxWidth().padding(start = 5.dp), enabled = ui.parsed != null && ui.parsed!!.ops.isNotEmpty(), disabledReason = "No operations staged.")
+                VbButton(text = "APPLY LOCALLY", onClick = vm::apply, modifier = Modifier.weight(1f), enabled = ui.parsed != null && ui.parsed!!.ops.isNotEmpty(), disabledReason = "Parse a payload first.")
+                VbButton(text = "CONTINUE TO PUSH", onClick = gotoPush, modifier = Modifier.weight(1f), enabled = ui.parsed != null && ui.parsed!!.ops.isNotEmpty(), disabledReason = "No operations staged.")
             }
         }
     }

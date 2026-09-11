@@ -34,8 +34,9 @@ import dev.vibebridge.ui.components.VbIcon
 import dev.vibebridge.ui.components.VbPanel
 import dev.vibebridge.ui.components.VbRowTile
 import dev.vibebridge.ui.components.VbStat
-import dev.vibebridge.ui.theme.Amber
-import dev.vibebridge.ui.theme.Bg
+import dev.vibebridge.ui.components.VbTab
+import dev.vibebridge.ui.theme.GhCanvas
+import dev.vibebridge.ui.theme.GhTextPrimary
 import dev.vibebridge.viewmodel.WorkspaceViewModel
 
 @Composable
@@ -47,12 +48,12 @@ fun WorkspaceScreen(vm: WorkspaceViewModel, gotoGrab: () -> Unit) {
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().background(Bg).padding(20.dp),
+        modifier = Modifier.fillMaxSize().background(GhCanvas).padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Stagger(0) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("FILES", style = MaterialTheme.typography.displaySmall, color = Amber)
+                Text("FILES", style = MaterialTheme.typography.displaySmall, color = GhTextPrimary)
                 Spacer(Modifier.weight(1f))
                 VbButtonSecondary(text = "REFRESH", onClick = vm::refresh)
             }
@@ -85,7 +86,7 @@ fun WorkspaceScreen(vm: WorkspaceViewModel, gotoGrab: () -> Unit) {
             }
         }
         Stagger(3) {
-            VbPanel(title = "FILE TREE", modifier = Modifier.weight(1f)) {
+            VbPanel(title = "FILE TREE", modifier = Modifier.fillMaxWidth()) {
                 if (ui.tree.isEmpty()) {
                     VbEmpty(icon = VbIcon.FOLDER, title = "Workspace is empty. Apply a grab to populate the sandbox.", actionLabel = "GO TO GRAB", onAction = gotoGrab)
                 } else {

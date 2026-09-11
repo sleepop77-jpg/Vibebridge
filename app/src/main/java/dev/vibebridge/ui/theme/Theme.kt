@@ -3,15 +3,14 @@ package dev.vibebridge.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 
 private val scheme = darkColorScheme(
-    primary = Amber,
-    onPrimary = PureBlack,
-    primaryContainer = CardAlt,
-    onPrimaryContainer = AmberHi,
-    secondary = AmberHi,
-    onSecondary = PureBlack,
+    primary = GhBtnGreen,
+    onPrimary = PureWhite,
+    primaryContainer = GhBorderMuted,
+    onPrimaryContainer = GhTextPrimary,
+    secondary = GhAccent,
+    onSecondary = PureWhite,
     background = Bg,
     onBackground = Text,
     surface = Surface,
@@ -19,11 +18,11 @@ private val scheme = darkColorScheme(
     surfaceVariant = Card,
     onSurfaceVariant = TextDim,
     outline = Border,
-    outlineVariant = Border,
-    error = Red,
+    outlineVariant = GhBorderMuted,
+    error = GhDangerBright,
     onError = PureWhite,
-    errorContainer = Card,
-    onErrorContainer = RedHi
+    errorContainer = GhBorderMuted,
+    onErrorContainer = GhDangerBright
 )
 
 @Composable
