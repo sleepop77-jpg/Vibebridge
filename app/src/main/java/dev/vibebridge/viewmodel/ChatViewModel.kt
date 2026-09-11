@@ -41,13 +41,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     private val github = GitHubClient()
     private val workspace = Workspace(File(app.filesDir, "workspace"))
 
-    enum class Stage { IDEA, AWAIT }
-
     data class Ui(
         val messages: List<ChatMsg> = emptyList(),
         val input: String = "",
         val thinking: Boolean = false,
-        val stage: Stage = Stage.IDEA,
         val clipHint: String? = null,
         val lastClip: String = ""
     )
@@ -68,16 +65,17 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setInput(s: String) = _ui.update { it.copy(input = s) }
 
-fun currentTarget(): String = prefs.target
-
-fun setTarget(t: String) { prefs.target = t }
-
     fun send() {
         val text = _ui.value.input.trim()
         if (text.isEmpty()) return
-        when (_ui.value.stage) {
-            Stage.IDEA -> sendIdea(text)
-            Stage.AWAIT -> submitPayload(text)
+        val looksLikePayload = text.contains("===VIBEBRIDGE===") ||
+            text.contains("===== FILE:") ||
+            text.contains("===== EDIT:") ||
+            text.contains("===== DELETE:")
+        if (looksLikePayload) {
+            submitPayload(text)
+        } else {
+            sendIdea(text)
         }
     }
 
@@ -87,7 +85,7 @@ fun setTarget(t: String) { prefs.target = t }
         viewModelScope.launch {
             delay(350)
             append(PromptMsg(nextId(), PromptTemplates.compile(text, prefs.target), prefs.target))
-            _ui.update { it.copy(thinking = false, stage = Stage.AWAIT) }
+            _ui.update { it.copy(thinking = false) }
         }
     }
 
@@ -172,11 +170,9 @@ fun setTarget(t: String) { prefs.target = t }
                         val done = runs.firstOrNull() ?: continue
                         history.setCi(recId, done.conclusion)
                         updatePush(id) { it.copy(state = PushState.DONE, conclusion = done.conclusion, note = "run finished") }
-                        _ui.update { it.copy(stage = Stage.IDEA) }
                         return@launch
                     }
                     updatePush(id) { it.copy(state = PushState.DONE, conclusion = "unknown", note = "poll window ended") }
-                    _ui.update { it.copy(stage = Stage.IDEA) }
                 }
             }
         }
@@ -187,6 +183,10 @@ fun setTarget(t: String) { prefs.target = t }
         _ui.update { Ui() }
     }
 
+    fun currentTarget(): String = prefs.target
+
+    fun setTarget(t: String) { prefs.target = t }
+
     fun startClipWatch() {
         if (clipJob != null) return
         clipJob = viewModelScope.launch {
@@ -196,8 +196,11 @@ fun setTarget(t: String) { prefs.target = t }
                 val t = VbClipboard.read(getApplication())
                 if (t.isBlank() || t == _ui.value.lastClip) continue
                 _ui.update { it.copy(lastClip = t) }
-                val looksLike = t.contains("===VIBEBRIDGE===") || t.contains("===== FILE:")
-                if (looksLike && _ui.value.clipHint == null && _ui.value.stage == Stage.AWAIT) {
+                val looksLike = t.contains("===VIBEBRIDGE===") ||
+                    t.contains("===== FILE:") ||
+                    t.contains("===== EDIT:") ||
+                    t.contains("===== DELETE:")
+                if (looksLike && _ui.value.clipHint == null) {
                     _ui.update { it.copy(clipHint = t) }
                 }
             }
