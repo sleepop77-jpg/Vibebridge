@@ -97,7 +97,7 @@ fun HomeScreen(workspace: Workspace, prefs: Prefs, goto: (String) -> Unit) {
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text("VIBEBRIDGE // SESSION", color = VbYellow, fontSize = 16.sp, fontWeight = FontWeight.BLACK)
+                Text("VIBEBRIDGE // SESSION", color = VbYellow, fontSize = 16.sp, fontWeight = FontWeight.Black)
         VbCard("WORKSPACE") {
             Text("${prefs.repo.ifBlank { "no repo yet" }} • sandbox $files files", color = VbYellow, fontSize = 13.sp)
         }
@@ -144,7 +144,7 @@ fun CompilerScreen() {
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text("PROMPT COMPILER", color = VbYellow, fontSize = 16.sp, fontWeight = FontWeight.BLACK)
+                Text("PROMPT COMPILER", color = VbYellow, fontSize = 16.sp, fontWeight = FontWeight.Black)
         VbCard("RAW IDEA") {
             TextField(
                 value = idea,
@@ -162,7 +162,7 @@ fun CompilerScreen() {
                         .border(1.dp, if (sel) VbAmber else VbBorder, RoundedCornerShape(6.dp))
                         .clickable { target = t }
                         .padding(horizontal = 10.dp, vertical = 8.dp)
-                ) { Text(t, color = if (sel) Color.Black else VbDim, fontSize = 11.sp, fontWeight = FontWeight.BOLD) }
+                                ) { Text(t, color = if (sel) Color.Black else VbDim, fontSize = 11.sp, fontWeight = FontWeight.Bold) }
             }
         }
         VbCard("COMPILED PROMPT") {
@@ -176,7 +176,7 @@ fun CompilerScreen() {
             onClick = { copyToClipboard(ctx, "vibe-prompt", compiled) },
             enabled = compiled.isNotBlank(),
             modifier = Modifier.fillMaxWidth()
-        ) { Text("COPY PROMPT", fontWeight = FontWeight.BLACK) }
+                ) { Text("COPY PROMPT", fontWeight = FontWeight.Black) }
     }
 }
 
@@ -193,7 +193,7 @@ fun GrabScreen(workspace: Workspace) {
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text("GRAB BOX", color = VbYellow, fontSize = 16.sp, fontWeight = FontWeight.BLACK)
+                Text("GRAB BOX", color = VbYellow, fontSize = 16.sp, fontWeight = FontWeight.Black)
         OutlinedButton(
             onClick = { pasted = readClipboard(ctx) },
             modifier = Modifier.fillMaxWidth()
@@ -266,10 +266,10 @@ fun WorkspaceScreen(workspace: Workspace) {
         modifier = Modifier.fillMaxSize().padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text("WORKSPACE", color = VbYellow, fontSize = 16.sp, fontWeight = FontWeight.BLACK)
+                Text("WORKSPACE", color = VbYellow, fontSize = 16.sp, fontWeight = FontWeight.Black)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.background(VbGreen, RoundedCornerShape(6.dp)).padding(horizontal = 10.dp, vertical = 6.dp)) {
-                Text("SANDBOX ✓", color = Color.Black, fontSize = 11.sp, fontWeight = FontWeight.BOLD)
+                                Text("SANDBOX ✓", color = Color.Black, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
             Box(Modifier.background(VbCard, RoundedCornerShape(6.dp)).border(1.dp, VbBorder, RoundedCornerShape(6.dp)).padding(horizontal = 10.dp, vertical = 6.dp)) {
                 Text("SAF FOLDER: PKG 3", color = VbDim, fontSize = 11.sp)
@@ -301,7 +301,7 @@ fun LibraryScreen() {
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text("LIBRARY", color = VbYellow, fontSize = 16.sp, fontWeight = FontWeight.BLACK)
+                Text("LIBRARY", color = VbYellow, fontSize = 16.sp, fontWeight = FontWeight.Black)
         listOf(
             "Settings screen pack" to "add a settings screen with PAT, repo and branch fields plus strict-parser toggle",
             "GitHub push pack" to "add a GitHubClient that commits workspace ops via the Git Data API and reports push status",

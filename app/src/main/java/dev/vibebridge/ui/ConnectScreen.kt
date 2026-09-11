@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.vibebridge.core.Prefs
 import dev.vibebridge.ui.theme.VbAmber
 import dev.vibebridge.ui.theme.VbBg
@@ -50,13 +51,13 @@ fun ConnectScreen(prefs: Prefs, onDone: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Text("CONNECT", style = MaterialHeadline())
-        Text(
+                Text(
             "VibeBridge never phones home. Your PAT stays on this device and talks only to api.github.com. Use a FINE-GRAINED PAT scoped to ONE repo (Contents: read+write).",
             color = VbDim,
-            fontSize = androidx.compose.ui.unit.TextUnit.Companion.sp(11)
+            fontSize = 11.sp
         )
         CardBox {
-            Text("1. PASTE FINE-GRAINED PAT", color = VbDim, fontSize = androidx.compose.ui.unit.TextUnit.Companion.sp(11))
+                        Text("1. PASTE FINE-GRAINED PAT", color = VbDim, fontSize = 11.sp)
             Spacer(Modifier.height(6.dp))
             TextField(
                 value = pat,
@@ -68,7 +69,7 @@ fun ConnectScreen(prefs: Prefs, onDone: () -> Unit) {
             )
         }
         CardBox {
-            Text("2. REPO (owner/name)", color = VbDim, fontSize = androidx.compose.ui.unit.TextUnit.Companion.sp(11))
+                        Text("2. REPO (owner/name)", color = VbDim, fontSize = 11.sp)
             Spacer(Modifier.height(6.dp))
             TextField(
                 value = repo,
@@ -78,7 +79,7 @@ fun ConnectScreen(prefs: Prefs, onDone: () -> Unit) {
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(10.dp))
-            Text("3. DEFAULT BRANCH", color = VbDim, fontSize = androidx.compose.ui.unit.TextUnit.Companion.sp(11))
+                        Text("3. DEFAULT BRANCH", color = VbDim, fontSize = 11.sp)
             Spacer(Modifier.height(6.dp))
             TextField(
                 value = branch,
@@ -101,7 +102,7 @@ fun ConnectScreen(prefs: Prefs, onDone: () -> Unit) {
         Text(
             "Push validation, repo picker and CI status arrive in Package 2. For now this just stores your config locally.",
             color = VbDim,
-            fontSize = androidx.compose.ui.unit.TextUnit.Companion.sp(10)
+                        fontSize = 10.sp
         )
     }
 }

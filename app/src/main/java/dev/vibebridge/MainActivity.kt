@@ -82,7 +82,7 @@ fun Root() {
                             t,
                             color = if (sel) VbAmber else VbDim,
                             fontSize = 11.sp,
-                            fontWeight = if (sel) FontWeight.BLACK else FontWeight.NORMAL
+                                                        fontWeight = if (sel) FontWeight.Black else FontWeight.Normal
                         )
                     }
                 }

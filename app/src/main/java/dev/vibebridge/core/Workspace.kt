@@ -37,10 +37,10 @@ class Workspace(val root: File) {
                 is BridgeOp.FileOp -> { write(op.path, op.content); created++ }
                 is BridgeOp.DeleteOp ->
                     if (delete(op.path)) deleted++ else errors += "missing ${op.path}"
-                is BridgeOp.EditOp -> {
+                                is BridgeOp.EditOp -> {
                     val cur = read(op.path)
                     if (cur == null) { errors += "missing ${op.path}"; continue }
-                    var content = cur
+                    var content: String = cur
                     var ok = true
                     for ((find, replace) in op.finds) {
                         val next = BridgeParser.applyEdit(content, find, replace)
