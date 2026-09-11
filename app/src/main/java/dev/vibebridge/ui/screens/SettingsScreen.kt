@@ -43,7 +43,6 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
     val ui by vm.ui.collectAsState()
     var confirmDisconnect by remember { mutableStateOf(false) }
     var autoClip by remember { mutableStateOf(vm.prefs.autoClip) }
-    var stillSky by remember { mutableStateOf(vm.prefs.stillSky) }
     var target by remember { mutableStateOf(vm.prefs.target) }
 
     Column(
@@ -57,7 +56,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
         Stagger(0) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 VbIconButton(icon = VbIcon.BACK, description = "Back", onClick = onBack)
-                Text(text = "SETTINGS", color = Text, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("SETTINGS", color = Text, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
         }
         Stagger(1) {
@@ -86,11 +85,6 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
                     label = "AUTO-DETECT bridge payloads on clipboard",
                     checked = autoClip,
                     onChange = { autoClip = it; vm.prefs.autoClip = it }
-                )
-                VbToggle(
-                    label = "STILL SKY: pause cloud animation (battery saver)",
-                    checked = stillSky,
-                    onChange = { stillSky = it; vm.prefs.stillSky = it }
                 )
             }
         }

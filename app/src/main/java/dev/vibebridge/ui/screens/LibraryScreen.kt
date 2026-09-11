@@ -46,15 +46,16 @@ import dev.vibebridge.viewmodel.AppViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-private fun ciColor(ci: String): Color = when (ci) {
+private fun ciColor(ci: String): Color = when (ci) { 
     "success" -> Accent
     "failure" -> Danger
-    else -> Warning
+    else -> Warning 
 }
 
 @Composable
 fun LibraryScreen(vm: AppViewModel, goto: (VbTab) -> Unit) {
     val ctx = LocalContext.current
+    val ui by vm.ui.collectAsState()
     var tab by remember { mutableStateOf("TEMPLATES") }
     var refreshKey by remember { mutableStateOf(0) }
     val saved = remember(refreshKey) { vm.history.templates() }
@@ -66,22 +67,26 @@ fun LibraryScreen(vm: AppViewModel, goto: (VbTab) -> Unit) {
             .fillMaxSize()
             .background(Bg)
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Stagger(0) {
-            Text("LIBRARY", color = Text, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Stagger(0) { 
+            Text("LIBRARY", color = Text, fontSize = 20.sp, fontWeight = FontWeight.Bold) 
         }
-        Stagger(1) { VbSegmented(options = listOf("TEMPLATES", "HISTORY"), selected = tab, onSelect = { tab = it }) }
+        
+        Stagger(1) { 
+            VbSegmented(options = listOf("TEMPLATES", "HISTORY"), selected = tab, onSelect = { tab = it }) 
+        }
+        
         if (tab == "TEMPLATES") {
             Stagger(2) {
                 VbPanel(title = "BUILTIN STARTERS") {
                     PromptTemplates.BUILTINS.forEach { b ->
                         VbRowTile(
-                            icon = VbIcon.BOOK,
-                            title = b.name,
-                            subtitle = b.idea.take(52),
-                            onClick = {
+                            icon = VbIcon.BOOK, 
+                            title = b.name, 
+                            subtitle = b.idea.take(52), 
+                            onClick = { 
                                 VbClipboard.copy(ctx, "vibe-template", PromptTemplates.compile(b.idea, vm.prefs.target))
                                 Toast.makeText(ctx, "template prompt copied", Toast.LENGTH_SHORT).show()
                             }
@@ -93,7 +98,12 @@ fun LibraryScreen(vm: AppViewModel, goto: (VbTab) -> Unit) {
             Stagger(3) {
                 VbPanel(title = "SAVED TEMPLATES") {
                     if (saved.isEmpty()) {
-                        VbEmpty(icon = VbIcon.BOOK, title = "No saved templates yet. Save one from a chat prompt.", actionLabel = "GO TO CHAT", onAction = { goto(VbTab.CHAT) })
+                        VbEmpty(
+                            icon = VbIcon.BOOK, 
+                            title = "No saved templates. Save one from a chat prompt.", 
+                            actionLabel = "GO TO CHAT", 
+                            onAction = { goto(VbTab.CHAT) }
+                        )
                     } else {
                         saved.forEach { t ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -102,16 +112,16 @@ fun LibraryScreen(vm: AppViewModel, goto: (VbTab) -> Unit) {
                                     Text(t.idea.take(52), color = TextDim, fontSize = 11.sp)
                                 }
                                 VbIconButton(
-                                    icon = VbIcon.COPY,
-                                    description = "Copy template prompt",
-                                    onClick = {
+                                    icon = VbIcon.COPY, 
+                                    description = "Copy template prompt", 
+                                    onClick = { 
                                         VbClipboard.copy(ctx, "vibe-template", PromptTemplates.compile(t.idea, t.target))
                                         Toast.makeText(ctx, "template prompt copied", Toast.LENGTH_SHORT).show()
                                     }
                                 )
                                 VbIconButton(
-                                    icon = VbIcon.TRASH,
-                                    description = "Delete template",
+                                    icon = VbIcon.TRASH, 
+                                    description = "Delete template", 
                                     onClick = { vm.history.deleteTemplate(t.id); refreshKey++ }
                                 )
                             }
@@ -124,7 +134,12 @@ fun LibraryScreen(vm: AppViewModel, goto: (VbTab) -> Unit) {
             Stagger(2) {
                 VbPanel(title = "PUSH HISTORY") {
                     if (pushes.isEmpty()) {
-                        VbEmpty(icon = VbIcon.PUSH, title = "No pushes recorded yet. Start a change in the chat.", actionLabel = "GO TO CHAT", onAction = { goto(VbTab.CHAT) })
+                        VbEmpty(
+                            icon = VbIcon.PUSH, 
+                            title = "No pushes recorded yet. Start a change in the chat.", 
+                            actionLabel = "GO TO CHAT", 
+                            onAction = { goto(VbTab.CHAT) }
+                        )
                     } else {
                         pushes.forEach { p ->
                             Row(verticalAlignment = Alignment.CenterVertically) {

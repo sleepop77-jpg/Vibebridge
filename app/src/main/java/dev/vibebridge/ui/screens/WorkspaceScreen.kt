@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.vibebridge.ui.FileViewerSheet
 import dev.vibebridge.ui.components.BannerKind
-import dev.vibebridge.ui.components.ShimmerBlock
 import dev.vibebridge.ui.components.Stagger
 import dev.vibebridge.ui.components.VbBanner
 import dev.vibebridge.ui.components.VbButtonDanger
@@ -53,9 +52,8 @@ fun WorkspaceScreen(vm: WorkspaceViewModel, gotoChat: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .background(Bg)
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Stagger(0) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -63,17 +61,8 @@ fun WorkspaceScreen(vm: WorkspaceViewModel, gotoChat: () -> Unit) {
                 VbIconButton(icon = VbIcon.REFRESH, description = "Refresh tree", onClick = vm::refresh)
             }
         }
+        
         Stagger(1) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (ui.pulling) {
-                    ShimmerBlock(height = 46.dp)
-                } else {
-                    VbButtonSecondary(text = "PULL FROM GITHUB", onClick = vm::askPull, modifier = Modifier.fillMaxWidth())
-                }
-                ui.pullMsg?.let { VbBanner(kind = BannerKind.INFO, text = it) }
-            }
-        }
-        Stagger(2) {
             VbPanel(title = "SANDBOX STORAGE") {
                 VbStat("FILES", ui.tree.size.toString())
                 VbStat("SIZE", if (ui.bytes < 1024) "${ui.bytes} B" else "${ui.bytes / 1024} KB")
@@ -85,7 +74,8 @@ fun WorkspaceScreen(vm: WorkspaceViewModel, gotoChat: () -> Unit) {
                 ui.zipMsg?.let { Spacer(Modifier.height(8.dp)); VbBanner(kind = BannerKind.INFO, text = it) }
             }
         }
-        Stagger(3) {
+        
+        Stagger(2) {
             VbPanel(title = "SAF MIRROR") {
                 if (ui.mirrorBound) {
                     VbStat("FOLDER", "bound")
@@ -100,19 +90,22 @@ fun WorkspaceScreen(vm: WorkspaceViewModel, gotoChat: () -> Unit) {
                 ui.mirrorMsg?.let { Spacer(Modifier.height(8.dp)); VbBanner(kind = BannerKind.INFO, text = it) }
             }
         }
-        Stagger(4) {
-            VbPanel(title = "FILE TREE") {
+        
+        Stagger(3) {
+            VbPanel(title = "FILE TREE", modifier = Modifier.fillMaxWidth()) {
                 if (ui.tree.isEmpty()) {
-                    VbEmpty(icon = VbIcon.FOLDER, title = "Sandbox is empty. Pull from GitHub or apply a chat push.", actionLabel = "GO TO CHAT", onAction = gotoChat)
+                    VbEmpty(
+                        icon = VbIcon.FOLDER, 
+                        title = "Workspace is empty. Apply a chat push or pull from GitHub to populate the sandbox.", 
+                        actionLabel = "GO TO CHAT", 
+                        onAction = gotoChat
+                    )
                 } else {
-                    ui.tree.forEach { path ->
-                        VbRowTile(
-                            icon = VbIcon.DOC,
-                            title = path.substringAfterLast('/'),
-                            subtitle = path,
-                            onClick = { vm.open(path) }
-                        )
-                        Spacer(Modifier.height(6.dp))
+                    LazyColumn(modifier = Modifier.fillMaxWidth().height(400.dp)) {
+                        items(ui.tree) { path ->
+                            VbRowTile(icon = VbIcon.CODE, title = path.substringAfterLast('/'), subtitle = path, onClick = { vm.open(path) })
+                            Spacer(Modifier.height(6.dp))
+                        }
                     }
                 }
             }
@@ -121,24 +114,16 @@ fun WorkspaceScreen(vm: WorkspaceViewModel, gotoChat: () -> Unit) {
 
     if (ui.confirmClear) {
         VbConfirmDialog(
-            title = "CLEAR SANDBOX",
-            body = "All local sandbox files will be deleted. The GitHub repository is not touched.",
-            confirmLabel = "DELETE",
-            onConfirm = vm::confirmClear,
-            onDismiss = vm::cancelClear,
+            title = "CLEAR WORKSPACE", 
+            body = "All sandbox files will be deleted. The GitHub repository is not touched.", 
+            confirmLabel = "DELETE", 
+            onConfirm = vm::confirmClear, 
+            onDismiss = vm::cancelClear, 
             danger = true
         )
     }
-    if (ui.confirmPull) {
-        VbConfirmDialog(
-            title = "PULL FROM GITHUB",
-            body = "The sandbox will be replaced with the current contents of the connected branch.",
-            confirmLabel = "PULL",
-            onConfirm = vm::pull,
-            onDismiss = vm::cancelPull
-        )
-    }
-    ui.selected?.let { path ->
-        FileViewerSheet(path = path, content = ui.content, onDismiss = vm::closeViewer)
+    
+    ui.selected?.let { path -> 
+        FileViewerSheet(path = path, content = ui.content, onDismiss = vm::closeViewer) 
     }
 }
