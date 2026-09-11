@@ -26,6 +26,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -125,7 +126,7 @@ fun VbLoading(label: String, modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Canvas(Modifier.size(32.dp)) {
+                Canvas(Modifier.size(32.dp)) {
             drawArc(
                 color = Amber,
                 startAngle = angle,
@@ -133,8 +134,7 @@ fun VbLoading(label: String, modifier: Modifier = Modifier) {
                 useCenter = false,
                 topLeft = Offset(4f, 4f),
                 size = Size(size.width - 8f, size.height - 8f),
-                strokeWidth = 6f,
-                cap = StrokeCap.Round
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 6f, cap = StrokeCap.Round)
             )
         }
         Text(label, style = MaterialTheme.typography.labelLarge, color = TextDim)

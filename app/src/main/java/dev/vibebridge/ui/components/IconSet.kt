@@ -147,16 +147,15 @@ fun VbIconView(
                     StrokeCap.Round
                 )
                 is Dot -> drawCircle(color, op.r * s, Offset(op.x * s, op.y * s))
-                is Ring -> drawCircle(
+                                is Ring -> drawCircle(
                     color, op.r * s, Offset(op.x * s, op.y * s),
-                    style = androidx.compose.ui.graphics.Stroke(width = strokePx)
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx)
                 )
-                is ArcOp -> drawArc(
+                                is ArcOp -> drawArc(
                     color, op.start, op.sweep, false,
                     topLeft = Offset(op.l * s, op.t * s),
                     size = Size(op.w * s, op.h * s),
-                    strokeWidth = strokePx,
-                    cap = StrokeCap.Round
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = StrokeCap.Round)
                 )
             }
         }
