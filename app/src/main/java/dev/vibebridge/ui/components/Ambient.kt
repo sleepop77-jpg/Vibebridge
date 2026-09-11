@@ -30,6 +30,7 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.sin
 import kotlin.random.Random
+import kotlinx.coroutines.delay
 
 private data class StarSpec(
     val x: Float,
@@ -71,8 +72,11 @@ fun StarField(modifier: Modifier = Modifier, count: Int = 42) {
         val h = size.height
         for (s in stars) {
             val y = ((s.y0 + t * s.speed) % 1f) * h
-            val x = s.x * w + (sin(2.0 * PI * (t * s.wobble + s.phase)) * 5.0).toFloat()
-            val twinkle = 0.45f + 0.55f * abs(sin(PI * (t * s.tw + s.phase)))
+            val wobbleArg = (t * s.wobble + s.phase).toDouble()
+            val wobbleOffset = (sin(2.0 * PI * wobbleArg) * 5.0).toFloat()
+            val x = s.x * w + wobbleOffset
+            val twArg = (t * s.tw + s.phase).toDouble()
+            val twinkle = 0.45f + 0.55f * abs(sin(PI * twArg)).toFloat()
             val c = Color.White.copy(alpha = twinkle)
             if (s.cross) {
                 val l = s.r * 3f
