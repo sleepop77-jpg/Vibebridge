@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -19,12 +18,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import dev.vibebridge.ui.FileViewerSheet
+import dev.vibebridge.ui.components.BannerKind
 import dev.vibebridge.ui.components.Stagger
 import dev.vibebridge.ui.components.VbBanner
-import dev.vibebridge.ui.components.VbBannerKind
 import dev.vibebridge.ui.components.VbButtonDanger
 import dev.vibebridge.ui.components.VbButtonSecondary
 import dev.vibebridge.ui.components.VbConfirmDialog
@@ -34,8 +35,7 @@ import dev.vibebridge.ui.components.VbPanel
 import dev.vibebridge.ui.components.VbRowTile
 import dev.vibebridge.ui.components.VbStat
 import dev.vibebridge.ui.components.VbTab
-import dev.vibebridge.ui.FileViewerSheet
-import dev.vibebridge.ui.theme.AmberHi
+import dev.vibebridge.ui.theme.Amber
 import dev.vibebridge.ui.theme.Bg
 import dev.vibebridge.viewmodel.WorkspaceViewModel
 
@@ -52,9 +52,9 @@ fun WorkspaceScreen(vm: WorkspaceViewModel, gotoGrab: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Stagger(0) {
-            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                Text("FILES", style = MaterialTheme.typography.displaySmall, color = AmberHi)
-                Spacer(Modifier.weight(1f))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("FILES", style = MaterialTheme.typography.displaySmall, color = Amber)
+                Spacer(Modifier.fillMaxWidth().padding(start = 10.dp))
                 VbButtonSecondary(text = "REFRESH", onClick = vm::refresh)
             }
         }
@@ -64,10 +64,10 @@ fun WorkspaceScreen(vm: WorkspaceViewModel, gotoGrab: () -> Unit) {
                 VbStat("SIZE", if (ui.bytes < 1024) "${ui.bytes} B" else "${ui.bytes / 1024} KB")
                 Spacer(Modifier.height(10.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    VbButtonSecondary(text = "EXPORT ZIP", onClick = { vm.exportZip(ctx) }, modifier = Modifier.weight(1f))
-                    VbButtonDanger(text = "CLEAR", onClick = vm::askClear, modifier = Modifier.weight(1f))
+                    VbButtonSecondary(text = "EXPORT ZIP", onClick = { vm.exportZip(ctx) }, modifier = Modifier.fillMaxWidth().padding(end = 5.dp))
+                    VbButtonDanger(text = "CLEAR", onClick = vm::askClear, modifier = Modifier.fillMaxWidth().padding(start = 5.dp))
                 }
-                ui.zipMsg?.let { Spacer(Modifier.height(8.dp)); VbBanner(kind = VbBannerKind.INFO, text = it) }
+                ui.zipMsg?.let { Spacer(Modifier.height(8.dp)); VbBanner(kind = BannerKind.INFO, text = it) }
             }
         }
         Stagger(2) {
@@ -76,21 +76,21 @@ fun WorkspaceScreen(vm: WorkspaceViewModel, gotoGrab: () -> Unit) {
                     VbStat("FOLDER", "bound")
                     Spacer(Modifier.height(10.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        VbButtonSecondary(text = "MIRROR NOW", onClick = { vm.mirrorNow(ctx) }, modifier = Modifier.weight(1f))
-                        VbButtonSecondary(text = "UNBIND", onClick = { vm.unbind(ctx) }, modifier = Modifier.weight(1f))
+                        VbButtonSecondary(text = "MIRROR NOW", onClick = { vm.mirrorNow(ctx) }, modifier = Modifier.fillMaxWidth().padding(end = 5.dp))
+                        VbButtonSecondary(text = "UNBIND", onClick = { vm.unbind(ctx) }, modifier = Modifier.fillMaxWidth().padding(start = 5.dp))
                     }
                 } else {
                     VbButtonSecondary(text = "BIND FOLDER", onClick = { picker.launch(null) }, modifier = Modifier.fillMaxWidth())
                 }
-                ui.mirrorMsg?.let { Spacer(Modifier.height(8.dp)); VbBanner(kind = VbBannerKind.INFO, text = it) }
+                ui.mirrorMsg?.let { Spacer(Modifier.height(8.dp)); VbBanner(kind = BannerKind.INFO, text = it) }
             }
         }
         Stagger(3) {
-            VbPanel(title = "FILE TREE", modifier = Modifier.weight(1f)) {
+            VbPanel(title = "FILE TREE", modifier = Modifier.fillMaxWidth()) {
                 if (ui.tree.isEmpty()) {
                     VbEmpty(icon = VbIcon.FOLDER, title = "Workspace is empty. Apply a grab to populate the sandbox.", actionLabel = "GO TO GRAB", onAction = gotoGrab)
                 } else {
-                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                    LazyColumn(modifier = Modifier.fillMaxWidth().height(400.dp)) {
                         items(ui.tree) { path ->
                             VbRowTile(icon = VbIcon.CODE, title = path.substringAfterLast('/'), subtitle = path, onClick = { vm.open(path) })
                             Spacer(Modifier.height(6.dp))

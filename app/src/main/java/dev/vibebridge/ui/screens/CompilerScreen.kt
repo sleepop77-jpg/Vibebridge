@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -26,9 +25,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import dev.vibebridge.core.PromptTemplates
 import dev.vibebridge.core.VbClipboard
+import dev.vibebridge.ui.components.BannerKind
 import dev.vibebridge.ui.components.Stagger
 import dev.vibebridge.ui.components.VbBanner
-import dev.vibebridge.ui.components.VbBannerKind
 import dev.vibebridge.ui.components.VbButton
 import dev.vibebridge.ui.components.VbButtonSecondary
 import dev.vibebridge.ui.components.VbEmpty
@@ -55,7 +54,7 @@ fun CompilerScreen(vm: AppViewModel) {
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Stagger(0) { Text("COMPILE", style = MaterialTheme.typography.displaySmall, color = AmberHi) }
-        ui.infoBanner?.let { b -> VbBanner(kind = VbBannerKind.INFO, text = b, modifier = Modifier.fillMaxWidth()) }
+        ui.infoBanner?.let { b -> VbBanner(kind = BannerKind.INFO, text = b, modifier = Modifier.fillMaxWidth()) }
         Stagger(1) {
             VbPanel(title = "IDEA") {
                 VbField(label = "DESCRIBE THE CHANGE", value = idea, onValueChange = { idea = it }, placeholder = "add a settings screen with a strict parser toggle", singleLine = false)
@@ -76,8 +75,8 @@ fun CompilerScreen(vm: AppViewModel) {
                     }
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        VbButton(text = "COPY PROMPT", onClick = { val ok = VbClipboard.copy(ctx, "vibe-prompt", compiled); vm.banner(if (ok) "prompt copied" else "clipboard unavailable") }, modifier = Modifier.weight(1f))
-                        VbButtonSecondary(text = "SAVE TEMPLATE", onClick = { vm.history.addTemplate(idea.take(24), idea, target); vm.banner("template saved") }, modifier = Modifier.weight(1f))
+                        VbButton(text = "COPY PROMPT", onClick = { val ok = VbClipboard.copy(ctx, "vibe-prompt", compiled); vm.banner(if (ok) "prompt copied" else "clipboard unavailable") }, modifier = Modifier.fillMaxWidth().padding(end = 5.dp))
+                        VbButtonSecondary(text = "SAVE TEMPLATE", onClick = { vm.history.addTemplate(idea.take(24), idea, target); vm.banner("template saved") }, modifier = Modifier.fillMaxWidth().padding(start = 5.dp))
                     }
                 }
             }

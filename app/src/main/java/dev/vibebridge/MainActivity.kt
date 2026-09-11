@@ -43,14 +43,14 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Root() {
-    val vm: AppViewModel = viewModels<AppViewModel>().value
+    val vm: AppViewModel by viewModels()
     val ui by vm.ui.collectAsState()
     var tab by remember { mutableStateOf(VbTab.HOME) }
     var showSettings by remember { mutableStateOf(false) }
     var showPush by remember { mutableStateOf(false) }
-    val grabVm: GrabViewModel = viewModels<GrabViewModel>().value
-    val wsVm: WorkspaceViewModel = viewModels<WorkspaceViewModel>().value
-    val pushVm: PushViewModel = viewModels<PushViewModel>().value
+    val grabVm: GrabViewModel by viewModels()
+    val wsVm: WorkspaceViewModel by viewModels()
+    val pushVm: PushViewModel by viewModels()
 
     if (!ui.onboarded) {
         ConnectScreen(vm)

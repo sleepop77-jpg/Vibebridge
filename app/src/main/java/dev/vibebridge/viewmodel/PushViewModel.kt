@@ -78,16 +78,17 @@ class PushViewModel(app: Application) : AndroidViewModel(app) {
                         while (attempts < 30) {
                             delay(8000)
                             attempts++
-                            val runs = github.runs(secure.pat, owner, repo, prefs.branch).getOrNull() ?: continue
+                            val runsResult = github.runs(secure.pat, owner, repo, prefs.branch)
+                            val runs = (runsResult as? VbResult.Ok)?.value ?: continue
                             val active = runs.firstOrNull { it.status != "completed" }
                             if (active != null) {
                                 _ui.update { it.copy(status = "run ${active.status}: ${active.name}") }
                                 continue
                             }
-                            val done = runs.firstOrNull()
-                            if (done == null) continue
+                            val done = runs.firstOrNull() ?: continue
                             history.setCi(id, done.conclusion)
-                            val arts = github.artifacts(secure.pat, owner, repo, done.id).getOrNull().orEmpty()
+                            val artsResult = github.artifacts(secure.pat, owner, repo, done.id)
+                            val arts = (artsResult as? VbResult.Ok)?.value.orEmpty()
                             val first = arts.firstOrNull()
                             _ui.update {
                                 it.copy(
