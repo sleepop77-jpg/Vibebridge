@@ -20,6 +20,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -82,7 +83,7 @@ fun VbWordmark(
 
             word.forEachIndexed { idx, ch ->
                 val ox = idx * cell
-                val glyph = VbGlyphs[ch] ?: emptyList()
+                val glyph: List<GSeg> = VbGlyphs.MAP[ch] ?: emptyList()
                 val lit = idx < litCount
                 if (lit) {
                     for (g in glyph) {
