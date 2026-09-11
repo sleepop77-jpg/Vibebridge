@@ -51,15 +51,17 @@ import dev.vibebridge.ui.components.MessageEnter
 import dev.vibebridge.ui.components.NoteBubble
 import dev.vibebridge.ui.components.ParseBubble
 import dev.vibebridge.ui.components.PayloadBubble
+import dev.vibebridge.ui.components.PixelBunny
 import dev.vibebridge.ui.components.PromptBubble
 import dev.vibebridge.ui.components.PushBubble
+import dev.vibebridge.ui.components.StarField
+import dev.vibebridge.ui.components.TipLine
 import dev.vibebridge.ui.components.TypingIndicator
 import dev.vibebridge.ui.components.UserBubble
 import dev.vibebridge.ui.components.VbComposer
 import dev.vibebridge.ui.components.VbIcon
 import dev.vibebridge.ui.components.VbIconView
 import dev.vibebridge.ui.components.VbWordmark
-import dev.vibebridge.ui.theme.Bg
 import dev.vibebridge.ui.theme.Elevated
 import dev.vibebridge.ui.theme.GhostPill
 import dev.vibebridge.ui.theme.Text
@@ -92,128 +94,128 @@ fun ChatScreen(vm: ChatViewModel, openSettings: () -> Unit) {
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(Bg)) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            VbWordmark(height = 18.dp)
-            Spacer(Modifier.weight(1f))
-            Box(
+    Box(modifier = Modifier.fillMaxSize()) {
+        StarField()
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
                 modifier = Modifier
-                    .height(34.dp)
-                    .background(GhostPill, CircleShape)
-                    .clickable(onClick = openSettings)
-                    .padding(horizontal = 10.dp),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                VbIconView(icon = VbIcon.GEAR, color = TextDim, size = 16.dp)
+                VbWordmark(height = 18.dp)
+                Spacer(Modifier.weight(1f))
+                Box(
+                    modifier = Modifier
+                        .height(34.dp)
+                        .background(GhostPill, CircleShape)
+                        .clickable(onClick = openSettings)
+                        .padding(horizontal = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    VbIconView(icon = VbIcon.GEAR, color = TextDim, size = 16.dp)
+                }
             }
-        }
 
-        Box(modifier = Modifier.weight(1f)) {
-            LazyColumn(
-                state = listState,
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                if (ui.messages.isEmpty()) {
-                    item {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(14.dp)
-                        ) {
-                            Spacer(Modifier.height(24.dp))
-                            VbWordmark(height = 26.dp, showTagline = true)
-                            Text(
-                                "describe a change, or paste a bridge payload from any AI chat",
-                                style = VbType.bodyMedium,
-                                color = TextDim
-                            )
-                            Row(
-                                modifier = Modifier.horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Box(modifier = Modifier.weight(1f)) {
+                LazyColumn(
+                    state = listState,
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    if (ui.messages.isEmpty()) {
+                        item {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(14.dp)
                             ) {
-                                PromptTemplates.BUILTINS.forEach { b ->
-                                    GhostPillButton(b.name, { vm.sendIdea(b.idea) })
+                                Spacer(Modifier.height(8.dp))
+                                PixelBunny(modifier = Modifier.height(104.dp))
+                                VbWordmark(height = 24.dp, showTagline = true)
+                                TipLine(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp))
+                                Row(
+                                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    PromptTemplates.BUILTINS.forEach { b ->
+                                        GhostPillButton(b.name, { vm.sendIdea(b.idea) })
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                items(ui.messages, key = { it.id }) { msg ->
-                    MessageEnter {
-                        Bubble(
-                            msg = msg,
-                            onCopyPrompt = { p ->
-                                VbClipboard.copy(ctx, "vibe-prompt", p)
-                                Toast.makeText(ctx, "prompt copied", Toast.LENGTH_SHORT).show()
-                            },
-                            onApply = vm::applyLocal,
-                            onPush = vm::push,
-                            onOpenRun = {
-                                if (msg is PushMsg) {
-                                    msg.runUrl?.let { url ->
-                                        runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+                    items(ui.messages, key = { it.id }) { msg ->
+                        MessageEnter {
+                            Bubble(
+                                msg = msg,
+                                onCopyPrompt = { p ->
+                                    VbClipboard.copy(ctx, "vibe-prompt", p)
+                                    Toast.makeText(ctx, "prompt copied", Toast.LENGTH_SHORT).show()
+                                },
+                                onApply = vm::applyLocal,
+                                onPush = vm::push,
+                                onOpenRun = {
+                                    if (msg is PushMsg) {
+                                        msg.runUrl?.let { url ->
+                                            runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+                                        }
                                     }
-                                }
-                            },
-                            onCopyErrors = { if (msg is PushMsg) msg.runId?.let { vm.copyErrors(it) } },
-                            onSaveMd = { if (msg is PushMsg) msg.runId?.let { vm.saveErrorsMd(it, msg.sha) } },
-                            onSaveApk = { if (msg is PushMsg) msg.runId?.let { vm.saveApkToDownloads(it, msg.sha) } },
-                            onShareApk = { if (msg is PushMsg) msg.runId?.let { vm.shareApk(it) } }
-                        )
+                                },
+                                onCopyErrors = { if (msg is PushMsg) msg.runId?.let { vm.copyErrors(it) } },
+                                onSaveMd = { if (msg is PushMsg) msg.runId?.let { vm.saveErrorsMd(it, msg.sha) } },
+                                onSaveApk = { if (msg is PushMsg) msg.runId?.let { vm.saveApkToDownloads(it, msg.sha) } },
+                                onShareApk = { if (msg is PushMsg) msg.runId?.let { vm.shareApk(it) } }
+                            )
+                        }
+                    }
+                    if (ui.thinking) {
+                        item { TypingIndicator() }
                     }
                 }
-                if (ui.thinking) {
-                    item { TypingIndicator() }
+            }
+
+            ui.clipHint?.let {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 4.dp)
+                        .background(Elevated, RoundedCornerShape(12.dp))
+                        .border(1.dp, WindowBorder, RoundedCornerShape(12.dp))
+                        .clickable { vm.clipIntoInput() }
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    VbIconView(icon = VbIcon.GRAB, color = Text, size = 14.dp)
+                    Spacer(Modifier.padding(horizontal = 4.dp))
+                    Text(
+                        "bridge payload on clipboard — tap to insert",
+                        color = Text,
+                        fontSize = 12.sp,
+                        modifier = Modifier.weight(1f)
+                    )
+                    VbIconView(icon = VbIcon.CROSS, color = TextFaint, size = 13.dp, modifier = Modifier.clickable { vm.dismissClip() })
                 }
             }
-        }
 
-        ui.clipHint?.let {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 4.dp)
-                    .background(Elevated, RoundedCornerShape(12.dp))
-                    .border(1.dp, WindowBorder, RoundedCornerShape(12.dp))
-                    .clickable { vm.clipIntoInput() }
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                VbIconView(icon = VbIcon.GRAB, color = Text, size = 14.dp)
-                Spacer(Modifier.padding(horizontal = 4.dp))
-                Text(
-                    "bridge payload on clipboard — tap to insert",
-                    color = Text,
-                    fontSize = 12.sp,
-                    modifier = Modifier.weight(1f)
-                )
-                VbIconView(icon = VbIcon.CROSS, color = TextFaint, size = 13.dp, modifier = Modifier.clickable { vm.dismissClip() })
-            }
+            VbComposer(
+                value = ui.input,
+                onValue = vm::setInput,
+                onSend = vm::send,
+                onClip = vm::clipIntoInput,
+                sendEnabled = ui.input.isNotBlank() && !ui.thinking,
+                models = MODELS,
+                currentModel = target,
+                onModel = { t -> target = t; vm.setTarget(t) },
+                templates = templates,
+                onTemplate = { name -> templates.firstOrNull { it.first == name }?.second?.let { vm.setInput(it) } },
+                files = files,
+                onFile = { vm.attachFile(it) },
+                strict = strict,
+                onStrict = { strict = vm.toggleStrict() },
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+            )
         }
-
-        VbComposer(
-            value = ui.input,
-            onValue = vm::setInput,
-            onSend = vm::send,
-            onClip = vm::clipIntoInput,
-            sendEnabled = ui.input.isNotBlank() && !ui.thinking,
-            models = MODELS,
-            currentModel = target,
-            onModel = { t -> target = t; vm.setTarget(t) },
-            templates = templates,
-            onTemplate = { name -> templates.firstOrNull { it.first == name }?.second?.let { vm.setInput(it) } },
-            files = files,
-            onFile = { vm.attachFile(it) },
-            strict = strict,
-            onStrict = { strict = vm.toggleStrict() },
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
-        )
     }
 }
 
