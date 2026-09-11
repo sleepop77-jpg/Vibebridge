@@ -111,14 +111,14 @@ class WorkspaceViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
         viewModelScope.launch {
-            when (val r = github.fetchAllFiles(secure.pat, owner, repo, prefs.branch)) {
-                is VbResult.Err -> _ui.update { it.copy(pulling = false, pullMsg = r.message) }
-                is VbResult.Ok -> {
-                    workspace.clear()
-                    r.value.forEach { (path, content) -> workspace.write(path, content) }
-                    refresh()
-                    _ui.update { it.copy(pulling = false, pullMsg = "pulled ${r.value.size} files from ${prefs.branch}") }
-                }
+            val r = github.fetchAllFiles(secure.pat, owner, repo, prefs.branch)
+            if (r is VbResult.Err) {
+                _ui.update { it.copy(pulling = false, pullMsg = r.message) }
+            } else if (r is VbResult.Ok) {
+                workspace.clear()
+                r.value.forEach { (path, content) -> workspace.write(path, content) }
+                refresh()
+                _ui.update { it.copy(pulling = false, pullMsg = "pulled ${r.value.size} files from ${prefs.branch}") }
             }
         }
     }

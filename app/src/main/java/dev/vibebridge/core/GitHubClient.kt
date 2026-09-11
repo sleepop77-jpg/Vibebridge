@@ -12,7 +12,6 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 class GitHubClient {
-
     private data class Raw(val code: Int, val body: String)
 
     companion object {
@@ -194,5 +193,31 @@ class GitHubClient {
         } catch (e: Exception) {
             VbResult.Err("Network failure: ${e.message}")
         }
+    }
+
+    suspend fun fetchAllFiles(pat: String, owner: String, repo: String, branch: String): VbResult<Map<String, String>> {
+        val refResult = raw(pat, "GET", "/repos/$owner/$repo/git/ref/heads/$branch", null)
+        val ref = (refResult as? VbResult.Ok)?.value ?: return VbResult.Err("Cannot resolve branch $branch.")
+        val refSha = JSONObject(ref.body).getJSONObject("object").getString("sha")
+        
+        val commitResult = raw(pat, "GET", "/repos/$owner/$repo/git/commits/$refSha", null)
+        val commit = (commitResult as? VbResult.Ok)?.value ?: return VbResult.Err("Cannot read head commit.")
+        val treeSha = JSONObject(commit.body).getJSONObject("tree").getString("sha")
+        
+        val treeResult = raw(pat, "GET", "/repos/$owner/$repo/git/trees/$treeSha?recursive=1", null)
+        val tree = (treeResult as? VbResult.Ok)?.value ?: return VbResult.Err("Cannot read file tree.")
+        
+        val entries = JSONObject(tree.body).optJSONArray("tree") ?: JSONArray()
+        val out = linkedMapOf<String, String>()
+        for (i in 0 until entries.length()) {
+            val e = entries.getJSONObject(i)
+            if (e.optString("type") != "blob") continue
+            if (e.optLong("size", 0L) > 512000L) continue
+            val blobResult = raw(pat, "GET", "/repos/$owner/$repo/git/blobs/${e.optString("sha")}", null)
+            val blob = (blobResult as? VbResult.Ok)?.value ?: continue
+            val content = JSONObject(blob.body).optString("content", "")
+            out[e.optString("path")] = String(android.util.Base64.decode(content, android.util.Base64.DEFAULT), Charsets.UTF_8)
+        }
+        return VbResult.Ok(out)
     }
 }
