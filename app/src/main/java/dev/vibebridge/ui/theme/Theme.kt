@@ -5,24 +5,24 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 
 private val scheme = darkColorScheme(
-    primary = GhBtnGreen,
-    onPrimary = PureWhite,
-    primaryContainer = GhBorderMuted,
-    onPrimaryContainer = GhTextPrimary,
-    secondary = GhAccent,
-    onSecondary = PureWhite,
+    primary = ButtonPrimary,
+    onPrimary = Text,
+    primaryContainer = SurfaceHigh,
+    onPrimaryContainer = Text,
+    secondary = TextDim,
+    onSecondary = Bg,
     background = Bg,
     onBackground = Text,
     surface = Surface,
     onSurface = Text,
-    surfaceVariant = Card,
+    surfaceVariant = SurfaceHigh,
     onSurfaceVariant = TextDim,
     outline = Border,
-    outlineVariant = GhBorderMuted,
-    error = GhDangerBright,
+    outlineVariant = Border,
+    error = Danger,
     onError = PureWhite,
-    errorContainer = GhBorderMuted,
-    onErrorContainer = GhDangerBright
+    errorContainer = SurfaceHigh,
+    onErrorContainer = Danger
 )
 
 @Composable

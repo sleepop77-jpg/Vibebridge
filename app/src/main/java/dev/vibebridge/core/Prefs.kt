@@ -19,6 +19,9 @@ class Prefs(ctx: Context) {
     var strict: Boolean
         get() = p.getBoolean("strict", false)
         set(v) = p.edit().putBoolean("strict", v).apply()
+    var autoClip: Boolean
+        get() = p.getBoolean("auto_clip", true)
+        set(v) = p.edit().putBoolean("auto_clip", v).apply()
     var mirrorUri: String
         get() = p.getString("mirror_uri", "") ?: ""
         set(v) = p.edit().putString("mirror_uri", v).apply()

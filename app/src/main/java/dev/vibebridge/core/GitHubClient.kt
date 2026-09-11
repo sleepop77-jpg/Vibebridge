@@ -74,12 +74,11 @@ class GitHubClient {
         ops: List<BridgeOp>
     ): VbResult<CommitInfo> {
         val ref = raw(pat, "GET", "/repos/$owner/$repo/git/ref/heads/$branch", null)
-            .getOrNull() ?: return VbResult.Err(refError(pat, owner, repo, branch))
+            .getOrNull() ?: return VbResult.Err(refError(owner, repo, branch))
         val refSha = JSONObject(ref.body).getJSONObject("object").getString("sha")
         val baseCommit = raw(pat, "GET", "/repos/$owner/$repo/git/commits/$refSha", null).getOrNull()
             ?: return VbResult.Err("Could not read base commit for branch $branch.")
         val baseTree = JSONObject(baseCommit.body).getJSONObject("tree").getString("sha")
-
         val entries = JSONArray()
         for (op in ops) {
             when (op) {
@@ -113,12 +112,10 @@ class GitHubClient {
             }
         }
         if (entries.length() == 0) return VbResult.Err("Nothing to commit.")
-
         val treeBody = JSONObject().apply { put("base_tree", baseTree); put("tree", entries) }
         val tree = raw(pat, "POST", "/repos/$owner/$repo/git/trees", treeBody).getOrNull()
             ?: return VbResult.Err("Tree creation failed.")
         val treeSha = JSONObject(tree.body).getString("sha")
-
         val commitBody = JSONObject().apply {
             put("message", message)
             put("tree", treeSha)
@@ -128,13 +125,12 @@ class GitHubClient {
             ?: return VbResult.Err("Commit creation failed.")
         val commitObj = JSONObject(commit.body)
         val commitSha = commitObj.getString("sha")
-
         val patch = raw(pat, "PATCH", "/repos/$owner/$repo/git/refs/heads/$branch", JSONObject().put("sha", commitSha))
         if (patch is VbResult.Err) return VbResult.Err("Ref update failed: ${patch.message}")
         return VbResult.Ok(CommitInfo(commitSha, commitObj.optString("html_url", "")))
     }
 
-    private fun refError(pat: String, owner: String, repo: String, branch: String): String =
+    private fun refError(owner: String, repo: String, branch: String): String =
         "Cannot resolve refs/heads/$branch on $owner/$repo. Verify repository name, branch, and token scope."
 
     private suspend fun postBlob(pat: String, owner: String, repo: String, bytes: ByteArray): VbResult<String> {
@@ -149,6 +145,29 @@ class GitHubClient {
             val content = JSONObject(it.body).optString("content", "")
             String(android.util.Base64.decode(content, android.util.Base64.DEFAULT), Charsets.UTF_8)
         }
+
+    suspend fun fetchAllFiles(pat: String, owner: String, repo: String, branch: String): VbResult<Map<String, String>> {
+        val ref = raw(pat, "GET", "/repos/$owner/$repo/git/ref/heads/$branch", null)
+            .getOrNull() ?: return VbResult.Err("Cannot resolve branch $branch.")
+        val refSha = JSONObject(ref.body).getJSONObject("object").getString("sha")
+        val commit = raw(pat, "GET", "/repos/$owner/$repo/git/commits/$refSha", null)
+            .getOrNull() ?: return VbResult.Err("Cannot read head commit.")
+        val treeSha = JSONObject(commit.body).getJSONObject("tree").getString("sha")
+        val tree = raw(pat, "GET", "/repos/$owner/$repo/git/trees/$treeSha?recursive=1", null)
+            .getOrNull() ?: return VbResult.Err("Cannot read file tree.")
+        val entries = JSONObject(tree.body).optJSONArray("tree") ?: JSONArray()
+        val out = linkedMapOf<String, String>()
+        for (i in 0 until entries.length()) {
+            val e = entries.getJSONObject(i)
+            if (e.optString("type") != "blob") continue
+            if (e.optLong("size", 0L) > 512000L) continue
+            val blob = raw(pat, "GET", "/repos/$owner/$repo/git/blobs/${e.optString("sha")}", null)
+                .getOrNull() ?: continue
+            val content = JSONObject(blob.body).optString("content", "")
+            out[e.optString("path")] = String(android.util.Base64.decode(content, android.util.Base64.DEFAULT), Charsets.UTF_8)
+        }
+        return VbResult.Ok(out)
+    }
 
     suspend fun runs(pat: String, owner: String, repo: String, branch: String): VbResult<List<RunInfo>> =
         raw(pat, "GET", "/repos/$owner/$repo/actions/runs?branch=$branch&per_page=5", null).map {

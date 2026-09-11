@@ -21,16 +21,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.vibebridge.ui.theme.GhAccent
-import dev.vibebridge.ui.theme.GhBorder
-import dev.vibebridge.ui.theme.GhInset
-import dev.vibebridge.ui.theme.GhTextDisabled
+import dev.vibebridge.ui.theme.Accent
+import dev.vibebridge.ui.theme.Border
+import dev.vibebridge.ui.theme.Inset
+import dev.vibebridge.ui.theme.TextFaint
 
 enum class VbTab(val label: String, val icon: VbIconKind) {
-    HOME("HOME", VbIcon.HOME),
-    COMPILER("COMPILE", VbIcon.CODE),
-    GRAB("GRAB", VbIcon.GRAB),
-    WORKSPACE("FILES", VbIcon.FOLDER),
+    CHAT("CHAT", VbIcon.BOT),
+    FILES("FILES", VbIcon.FOLDER),
     LIBRARY("LIBRARY", VbIcon.BOOK)
 }
 
@@ -41,12 +39,12 @@ fun VbBottomBar(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth().navigationBarsPadding()) {
-        Divider(color = GhBorder, thickness = 1.dp)
+        Divider(color = Border, thickness = 1.dp)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .background(GhInset),
+                .background(Inset),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -61,16 +59,16 @@ fun VbBottomBar(
                     verticalArrangement = Arrangement.Center
                 ) {
                     if (sel) {
-                        Box(Modifier.size(4.dp).clip(CircleShape).background(GhAccent))
+                        Box(Modifier.size(4.dp).clip(CircleShape).background(Accent))
                     } else {
                         Box(Modifier.size(4.dp))
                     }
-                    VbIconView(icon = tab.icon, color = if (sel) GhAccent else GhTextDisabled, size = 18.dp)
+                    VbIconView(icon = tab.icon, color = if (sel) Accent else TextFaint, size = 18.dp)
                     Text(
                         tab.label,
                         fontSize = 9.sp,
-                        fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (sel) GhAccent else GhTextDisabled,
+                        fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Medium,
+                        color = if (sel) Accent else TextFaint,
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 }

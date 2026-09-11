@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,42 +23,40 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import dev.vibebridge.ui.theme.Amber
-import dev.vibebridge.ui.theme.AmberLo
+import androidx.compose.ui.unit.sp
+import dev.vibebridge.ui.theme.Accent
 import dev.vibebridge.ui.theme.Border
-import dev.vibebridge.ui.theme.Card
-import dev.vibebridge.ui.theme.Red
-import dev.vibebridge.ui.theme.RedHi
+import dev.vibebridge.ui.theme.Danger
+import dev.vibebridge.ui.theme.Surface
 import dev.vibebridge.ui.theme.Text
 import dev.vibebridge.ui.theme.TextDim
 import dev.vibebridge.ui.theme.TextFaint
+import dev.vibebridge.ui.theme.Warning
 
 enum class BannerKind { INFO, WARN, ERROR }
 
 @Composable
 fun VbBanner(kind: BannerKind, text: String, modifier: Modifier = Modifier) {
-    val (border, tint, icon) = when (kind) {
+    val (borderColor, tint, icon) = when (kind) {
         BannerKind.INFO -> Triple(Border, TextDim, VbIcon.CHECK)
-        BannerKind.WARN -> Triple(AmberLo, AmberLo, VbIcon.WARN)
-        BannerKind.ERROR -> Triple(Red, RedHi, VbIcon.CROSS)
+        BannerKind.WARN -> Triple(Warning, Warning, VbIcon.WARN)
+        BannerKind.ERROR -> Triple(Danger, Danger, VbIcon.CROSS)
     }
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Card, RoundedCornerShape(10.dp))
-            .border(1.dp, border, RoundedCornerShape(10.dp))
+            .background(Surface, RoundedCornerShape(10.dp))
+            .border(1.dp, borderColor, RoundedCornerShape(10.dp))
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        VbIconView(icon = icon, color = tint, size = 18.dp)
-        Text(text, style = MaterialTheme.typography.labelLarge, color = Text)
+        VbIconView(icon = icon, color = tint, size = 16.dp)
+        Text(text, color = Text, fontSize = 12.sp)
     }
 }
 
@@ -74,17 +71,12 @@ fun VbEmpty(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 32.dp, horizontal = 24.dp),
+            .padding(vertical = 36.dp, horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        VbIconView(icon = icon, color = TextFaint, size = 36.dp)
-        Text(
-            title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = TextDim,
-            textAlign = TextAlign.Center
-        )
+        VbIconView(icon = icon, color = TextFaint, size = 34.dp)
+        Text(title, color = TextDim, fontSize = 13.sp, textAlign = TextAlign.Center)
         if (actionLabel != null && onAction != null) {
             VbButtonSecondary(text = actionLabel, onClick = onAction)
         }
@@ -101,7 +93,7 @@ fun VbErrorState(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 24.dp, horizontal = 16.dp),
+            .padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -122,21 +114,21 @@ fun VbLoading(label: String, modifier: Modifier = Modifier) {
         label = "angle"
     )
     Column(
-        modifier = modifier.padding(24.dp),
+        modifier = modifier.padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-                Canvas(Modifier.size(32.dp)) {
+        Canvas(Modifier.size(28.dp)) {
             drawArc(
-                color = Amber,
+                color = Accent,
                 startAngle = angle,
                 sweepAngle = 300f,
                 useCenter = false,
-                topLeft = Offset(4f, 4f),
-                size = Size(size.width - 8f, size.height - 8f),
-                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 6f, cap = StrokeCap.Round)
+                topLeft = Offset(3f, 3f),
+                size = Size(size.width - 6f, size.height - 6f),
+                style = Stroke(width = 5f, cap = StrokeCap.Round)
             )
         }
-        Text(label, style = MaterialTheme.typography.labelLarge, color = TextDim)
+        Text(label, color = TextDim, fontSize = 12.sp)
     }
 }

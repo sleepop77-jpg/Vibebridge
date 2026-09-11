@@ -18,11 +18,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.vibebridge.ui.theme.Amber
+import dev.vibebridge.ui.theme.Accent
 import dev.vibebridge.ui.theme.Border
-import dev.vibebridge.ui.theme.PureBlack
 import dev.vibebridge.ui.theme.Surface
+import dev.vibebridge.ui.theme.SurfaceHigh
+import dev.vibebridge.ui.theme.Text
 import dev.vibebridge.ui.theme.TextDim
+import dev.vibebridge.ui.theme.PureBlack
 
 @Composable
 fun VbSegmented(
@@ -32,25 +34,29 @@ fun VbSegmented(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Surface, RoundedCornerShape(10.dp))
+            .border(1.dp, Border, RoundedCornerShape(10.dp))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         options.forEach { opt ->
             val isSel = opt == selected
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .height(44.dp)
-                    .background(if (isSel) Amber else Surface, RoundedCornerShape(10.dp))
-                    .border(1.dp, if (isSel) Amber else Border, RoundedCornerShape(10.dp))
+                    .height(36.dp)
+                    .background(if (isSel) SurfaceHigh else Color.Transparent, RoundedCornerShape(8.dp))
+                    .border(1.dp, if (isSel) Border else Color.Transparent, RoundedCornerShape(8.dp))
                     .clickable { onSelect(opt) },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     opt,
-                    color = if (isSel) PureBlack else TextDim,
-                    fontSize = 11.sp,
-                    fontWeight = if (isSel) FontWeight.Black else FontWeight.Medium
+                    color = if (isSel) Text else TextDim,
+                    fontSize = 12.sp,
+                    fontWeight = if (isSel) FontWeight.SemiBold else FontWeight.Medium
                 )
             }
         }
@@ -62,8 +68,8 @@ fun VbTag(text: String, color: Color, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .background(color, RoundedCornerShape(6.dp))
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(horizontal = 8.dp, vertical = 3.dp)
     ) {
-        Text(text, color = PureBlack, fontSize = 10.sp, fontWeight = FontWeight.Black)
+        Text(text, color = PureBlack, fontSize = 10.sp, fontWeight = FontWeight.Bold)
     }
 }

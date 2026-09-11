@@ -8,12 +8,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,14 +21,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dev.vibebridge.ui.theme.AmberHi
 import dev.vibebridge.ui.theme.Border
-import dev.vibebridge.ui.theme.Card
-import dev.vibebridge.ui.theme.CardAlt
+import dev.vibebridge.ui.theme.Surface
+import dev.vibebridge.ui.theme.SurfaceHigh
 import dev.vibebridge.ui.theme.Text
 import dev.vibebridge.ui.theme.TextDim
+import dev.vibebridge.ui.theme.VbMono
 
-private val panelShape = RoundedCornerShape(12.dp)
+private val panelShape = RoundedCornerShape(14.dp)
 
 @Composable
 fun VbPanel(
@@ -40,7 +40,7 @@ fun VbPanel(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Card, panelShape)
+            .background(Surface, panelShape)
             .border(1.dp, Border, panelShape)
             .padding(16.dp)
     ) {
@@ -50,15 +50,10 @@ fun VbPanel(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = AmberHi,
-                    fontWeight = FontWeight.Black
-                )
+                Text(title, style = VbMono.Label, color = TextDim)
                 actions?.invoke(this)
             }
-            androidx.compose.foundation.layout.Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
         }
         content()
     }
@@ -69,12 +64,12 @@ fun VbStat(label: String, value: String, valueColor: Color = Text) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
+            .padding(vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(label, style = MaterialTheme.typography.labelLarge, color = TextDim)
-        Text(value, style = MaterialTheme.typography.titleMedium, color = valueColor, fontWeight = FontWeight.Bold)
+        Text(label, style = VbMono.Label, color = TextDim)
+        Text(value, style = VbMono.Stat, color = valueColor)
     }
 }
 
@@ -85,23 +80,35 @@ fun VbRowTile(
     subtitle: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    tint: Color = AmberHi
+    tint: Color = TextDim
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .background(CardAlt, RoundedCornerShape(10.dp))
+            .heightIn(min = 54.dp)
+            .background(SurfaceHigh, RoundedCornerShape(10.dp))
             .border(1.dp, Border, RoundedCornerShape(10.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        VbIconView(icon = icon, color = tint, size = 20.dp)
+        VbIconView(icon = icon, color = tint, size = 18.dp)
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge, color = Text, fontWeight = FontWeight.Bold)
-            Text(subtitle, style = MaterialTheme.typography.labelMedium, color = TextDim)
+            Text(title, style = VbMono.Label, color = Text, fontWeight = FontWeight.SemiBold)
+            Text(subtitle, style = VbMono.CodeSmall, color = TextDim)
         }
+        VbIconView(icon = VbIcon.CHEVRON, color = TextDim, size = 14.dp)
+    }
+}
+
+@Composable
+fun VbChipTag(text: String, color: Color, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .background(color, RoundedCornerShape(6.dp))
+            .padding(horizontal = 8.dp, vertical = 3.dp)
+    ) {
+        Text(text, style = VbMono.Label, color = Text, fontSize = 10.sp)
     }
 }

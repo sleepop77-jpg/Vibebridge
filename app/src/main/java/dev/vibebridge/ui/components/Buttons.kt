@@ -7,6 +7,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,19 +27,21 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.vibebridge.ui.theme.GhAccent
-import dev.vibebridge.ui.theme.GhBorderLight
-import dev.vibebridge.ui.theme.GhBorderMuted
-import dev.vibebridge.ui.theme.GhBtnGreen
-import dev.vibebridge.ui.theme.GhBtnGreenPress
-import dev.vibebridge.ui.theme.GhDanger
-import dev.vibebridge.ui.theme.GhDangerPress
-import dev.vibebridge.ui.theme.GhSurface
-import dev.vibebridge.ui.theme.GhTextDisabled
-import dev.vibebridge.ui.theme.GhTextSecondary
-import dev.vibebridge.ui.theme.PureWhite
+import dev.vibebridge.ui.theme.Accent
+import dev.vibebridge.ui.theme.Border
+import dev.vibebridge.ui.theme.BorderStrong
+import dev.vibebridge.ui.theme.ButtonGreen
+import dev.vibebridge.ui.theme.ButtonGreenPress
+import dev.vibebridge.ui.theme.ButtonPrimary
+import dev.vibebridge.ui.theme.ButtonPrimaryPress
+import dev.vibebridge.ui.theme.Danger
+import dev.vibebridge.ui.theme.DangerPress
+import dev.vibebridge.ui.theme.Surface
+import dev.vibebridge.ui.theme.Text
+import dev.vibebridge.ui.theme.TextDim
+import dev.vibebridge.ui.theme.TextFaint
 
-private val buttonShape = RoundedCornerShape(8.dp)
+private val buttonShape = RoundedCornerShape(10.dp)
 
 @Composable
 fun VbButton(
@@ -49,31 +53,73 @@ fun VbButton(
 ) {
     val source = remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
+    val scale = rememberPressScale(source)
     Column(modifier = modifier) {
         Box(
             modifier = Modifier
-                .height(48.dp)
+                .height(46.dp)
+                .pressScale(scale)
                 .clip(buttonShape)
+                .background(if (!enabled) Surface else if (pressed) ButtonPrimaryPress else ButtonPrimary)
+                .border(1.dp, if (!enabled) Border else BorderStrong, buttonShape)
                 .clickable(interactionSource = source, indication = null, enabled = enabled, onClick = onClick)
-                .background(
-                    if (!enabled) GhBorderMuted else if (pressed) GhBtnGreenPress else GhBtnGreen,
-                    buttonShape
-                )
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 18.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = text,
-                color = if (enabled) PureWhite else GhTextDisabled,
+                color = if (enabled) Text else TextFaint,
                 fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 0.5.sp
+                fontWeight = FontWeight.SemiBold
             )
         }
         if (!enabled && disabledReason != null) {
             Text(
                 disabledReason,
-                color = GhTextSecondary,
+                color = TextFaint,
+                fontSize = 11.sp,
+                modifier = Modifier.padding(top = 4.dp, start = 2.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun VbButtonGreen(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    disabledReason: String? = null
+) {
+    val source = remember { MutableInteractionSource() }
+    val pressed by source.collectIsPressedAsState()
+    val scale = rememberPressScale(source)
+    Column(modifier = modifier) {
+        Box(
+            modifier = Modifier
+                .height(46.dp)
+                .pressScale(scale)
+                .clip(buttonShape)
+                .background(if (!enabled) Surface else if (pressed) ButtonGreenPress else ButtonGreen)
+                .clickable(interactionSource = source, indication = null, enabled = enabled, onClick = onClick)
+                .padding(horizontal = 18.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                VbIconView(icon = VbIcon.PUSH, color = if (enabled) Text else TextFaint, size = 16.dp)
+                Text(
+                    text = text,
+                    color = if (enabled) Text else TextFaint,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+        if (!enabled && disabledReason != null) {
+            Text(
+                disabledReason,
+                color = TextFaint,
                 fontSize = 11.sp,
                 modifier = Modifier.padding(top = 4.dp, start = 2.dp)
             )
@@ -91,33 +137,30 @@ fun VbButtonSecondary(
 ) {
     val source = remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
+    val scale = rememberPressScale(source)
     Column(modifier = modifier) {
         Box(
             modifier = Modifier
-                .height(48.dp)
+                .height(46.dp)
+                .pressScale(scale)
                 .clip(buttonShape)
+                .background(Surface)
+                .border(1.dp, if (pressed) BorderStrong else Border, buttonShape)
                 .clickable(interactionSource = source, indication = null, enabled = enabled, onClick = onClick)
-                .background(GhSurface, buttonShape)
-                .border(
-                    1.dp,
-                    if (!enabled) GhBorderMuted else if (pressed) GhAccent else GhBorderLight,
-                    buttonShape
-                )
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 18.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = text,
-                color = if (enabled) GhTextSecondary else GhTextDisabled,
+                color = if (enabled) TextDim else TextFaint,
                 fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 0.5.sp
+                fontWeight = FontWeight.Medium
             )
         }
         if (!enabled && disabledReason != null) {
             Text(
                 disabledReason,
-                color = GhTextSecondary,
+                color = TextFaint,
                 fontSize = 11.sp,
                 modifier = Modifier.padding(top = 4.dp, start = 2.dp)
             )
@@ -134,24 +177,22 @@ fun VbButtonDanger(
 ) {
     val source = remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
+    val scale = rememberPressScale(source)
     Box(
         modifier = modifier
-            .height(48.dp)
+            .height(46.dp)
+            .pressScale(scale)
             .clip(buttonShape)
+            .background(if (!enabled) Surface else if (pressed) DangerPress else Danger)
             .clickable(interactionSource = source, indication = null, enabled = enabled, onClick = onClick)
-            .background(
-                if (!enabled) GhBorderMuted else if (pressed) GhDangerPress else GhDanger,
-                buttonShape
-            )
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 18.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
-            color = if (enabled) PureWhite else GhTextDisabled,
+            color = if (enabled) Text else TextFaint,
             fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 0.5.sp
+            fontWeight = FontWeight.SemiBold
         )
     }
 }
@@ -163,25 +204,27 @@ fun VbIconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    tint: Color = GhTextSecondary
+    tint: Color = TextDim,
+    accent: Boolean = false
 ) {
     val source = remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
+    val scale = rememberPressScale(source)
     Box(
         modifier = modifier
-            .size(40.dp)
+            .size(42.dp)
+            .pressScale(scale)
             .clip(CircleShape)
             .semantics { contentDescription = description }
-            .clickable(interactionSource = source, indication = null, enabled = enabled, onClick = onClick)
-            .background(GhBorderMuted, CircleShape)
+            .background(if (pressed) Surface else Color.Transparent)
             .border(
-                if (pressed) 2.dp else 1.dp,
-                if (!enabled) GhBorderMuted else if (pressed) GhAccent else GhBorderLight,
-                CircleShape
+                width = if (pressed || accent) 1.5.dp else 1.dp,
+                color = if (!enabled) Border else if (pressed || accent) Accent else Border,
+                shape = CircleShape
             )
-            .padding(8.dp),
+            .clickable(interactionSource = source, indication = null, enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        VbIconView(icon = icon, color = if (enabled) tint else GhTextDisabled, size = 18.dp)
+        VbIconView(icon = icon, color = if (enabled) tint else TextFaint, size = 18.dp)
     }
 }

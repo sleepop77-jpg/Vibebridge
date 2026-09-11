@@ -9,9 +9,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalDensity
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -124,6 +125,39 @@ object VbIcon {
     )
     val BACK = VbIconKind(listOf(Seg(11f, 5f, 4f, 12f), Seg(4f, 12f, 11f, 19f), Seg(4f, 12f, 20f, 12f)))
     val PLUS = VbIconKind(listOf(Seg(12f, 5f, 12f, 19f), Seg(5f, 12f, 19f, 12f)))
+    val SEND = VbIconKind(
+        listOf(
+            Seg(4f, 12f, 20f, 4f), Seg(20f, 4f, 14f, 20f), Seg(14f, 20f, 11f, 13f), Seg(11f, 13f, 4f, 12f),
+            Seg(11f, 13f, 20f, 4f)
+        )
+    )
+    val BOT = VbIconKind(
+        listOf(
+            Seg(6f, 9f, 18f, 9f), Seg(18f, 9f, 18f, 19f), Seg(18f, 19f, 6f, 19f), Seg(6f, 19f, 6f, 9f),
+            Seg(12f, 9f, 12f, 5f), Dot(12f, 4f, 1f),
+            Dot(9.5f, 14f, 1.1f), Dot(14.5f, 14f, 1.1f)
+        )
+    )
+    val USER = VbIconKind(
+        listOf(
+            Ring(12f, 8f, 3.5f),
+            Seg(5f, 20f, 6f, 15f), Seg(6f, 15f, 18f, 15f), Seg(18f, 15f, 19f, 20f)
+        )
+    )
+    val DOC = VbIconKind(
+        listOf(
+            Seg(6f, 3f, 14f, 3f), Seg(14f, 3f, 18f, 7f), Seg(18f, 7f, 18f, 21f), Seg(18f, 21f, 6f, 21f), Seg(6f, 21f, 6f, 3f),
+            Seg(14f, 3f, 14f, 7f), Seg(14f, 7f, 18f, 7f),
+            Seg(9f, 12f, 15f, 12f), Seg(9f, 16f, 15f, 16f)
+        )
+    )
+    val CLOCK = VbIconKind(
+        listOf(
+            Ring(12f, 12f, 8f),
+            Seg(12f, 7f, 12f, 12f), Seg(12f, 12f, 16f, 14f)
+        )
+    )
+    val CHEVRON = VbIconKind(listOf(Seg(9f, 6f, 15f, 12f), Seg(15f, 12f, 9f, 18f)))
 }
 
 @Composable
@@ -146,15 +180,15 @@ fun VbIconView(
                     StrokeCap.Round
                 )
                 is Dot -> drawCircle(color, op.r * s, Offset(op.x * s, op.y * s))
-                                is Ring -> drawCircle(
+                is Ring -> drawCircle(
                     color, op.r * s, Offset(op.x * s, op.y * s),
-                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx)
+                    style = Stroke(width = strokePx)
                 )
-                                is ArcOp -> drawArc(
+                is ArcOp -> drawArc(
                     color, op.start, op.sweep, false,
                     topLeft = Offset(op.l * s, op.t * s),
                     size = Size(op.w * s, op.h * s),
-                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokePx, cap = StrokeCap.Round)
+                    style = Stroke(width = strokePx, cap = StrokeCap.Round)
                 )
             }
         }

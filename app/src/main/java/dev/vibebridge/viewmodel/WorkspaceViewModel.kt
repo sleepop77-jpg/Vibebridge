@@ -6,8 +6,11 @@ import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import dev.vibebridge.core.GitHubClient
 import dev.vibebridge.core.Prefs
 import dev.vibebridge.core.SafMirror
+import dev.vibebridge.core.SecureStore
 import dev.vibebridge.core.VbResult
 import dev.vibebridge.core.Workspace
 import java.io.File
@@ -15,9 +18,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class WorkspaceViewModel(app: Application) : AndroidViewModel(app) {
     private val prefs = Prefs(app)
+    private val secure = SecureStore(app)
+    private val github = GitHubClient()
     val workspace = Workspace(File(app.filesDir, "workspace"))
 
     data class Ui(
@@ -28,7 +34,10 @@ class WorkspaceViewModel(app: Application) : AndroidViewModel(app) {
         val mirrorMsg: String? = null,
         val zipMsg: String? = null,
         val confirmClear: Boolean = false,
-        val mirrorBound: Boolean = false
+        val mirrorBound: Boolean = false,
+        val pulling: Boolean = false,
+        val pullMsg: String? = null,
+        val confirmPull: Boolean = false
     )
 
     private val _ui = MutableStateFlow(Ui())
@@ -71,8 +80,7 @@ class WorkspaceViewModel(app: Application) : AndroidViewModel(app) {
             _ui.update { it.copy(mirrorMsg = "bind a folder first") }
             return
         }
-        val r = SafMirror.mirror(ctx, Uri.parse(prefs.mirrorUri), workspace)
-        when (r) {
+        when (val r = SafMirror.mirror(ctx, Uri.parse(prefs.mirrorUri), workspace)) {
             is VbResult.Ok -> _ui.update { it.copy(mirrorMsg = "mirrored ${r.value} files", mirrorBound = true) }
             is VbResult.Err -> _ui.update { it.copy(mirrorMsg = r.message) }
         }
@@ -90,5 +98,28 @@ class WorkspaceViewModel(app: Application) : AndroidViewModel(app) {
         workspace.clear()
         _ui.update { it.copy(confirmClear = false) }
         refresh()
+    }
+
+    fun askPull() = _ui.update { it.copy(confirmPull = true) }
+    fun cancelPull() = _ui.update { it.copy(confirmPull = false) }
+
+    fun pull() {
+        _ui.update { it.copy(confirmPull = false, pulling = true, pullMsg = null) }
+        val (owner, repo) = prefs.splitRepo()
+        if (owner.isBlank() || secure.pat.isBlank()) {
+            _ui.update { it.copy(pulling = false, pullMsg = "connect a token in settings first") }
+            return
+        }
+        viewModelScope.launch {
+            when (val r = github.fetchAllFiles(secure.pat, owner, repo, prefs.branch)) {
+                is VbResult.Err -> _ui.update { it.copy(pulling = false, pullMsg = r.message) }
+                is VbResult.Ok -> {
+                    workspace.clear()
+                    r.value.forEach { (path, content) -> workspace.write(path, content) }
+                    refresh()
+                    _ui.update { it.copy(pulling = false, pullMsg = "pulled ${r.value.size} files from ${prefs.branch}") }
+                }
+            }
+        }
     }
 }

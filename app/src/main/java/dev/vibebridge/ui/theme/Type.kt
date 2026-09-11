@@ -6,15 +6,25 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
+private val sans = FontFamily.Default
 private val mono = FontFamily.Monospace
 
 val VbType = Typography(
-    displaySmall = TextStyle(fontFamily = mono, fontSize = 26.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp),
-    titleLarge = TextStyle(fontFamily = mono, fontSize = 18.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp),
-    titleMedium = TextStyle(fontFamily = mono, fontSize = 15.sp, fontWeight = FontWeight.Bold),
-    bodyLarge = TextStyle(fontFamily = mono, fontSize = 14.sp, fontWeight = FontWeight.Medium),
-    bodyMedium = TextStyle(fontFamily = mono, fontSize = 13.sp, fontWeight = FontWeight.Normal),
-    labelLarge = TextStyle(fontFamily = mono, fontSize = 12.sp, fontWeight = FontWeight.Bold),
-    labelMedium = TextStyle(fontFamily = mono, fontSize = 11.sp, fontWeight = FontWeight.Medium),
-    labelSmall = TextStyle(fontFamily = mono, fontSize = 10.sp, fontWeight = FontWeight.Medium)
+    displaySmall = TextStyle(fontFamily = sans, fontSize = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.sp),
+    titleLarge = TextStyle(fontFamily = sans, fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
+    titleMedium = TextStyle(fontFamily = sans, fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
+    titleSmall = TextStyle(fontFamily = sans, fontSize = 13.sp, fontWeight = FontWeight.SemiBold),
+    bodyLarge = TextStyle(fontFamily = sans, fontSize = 15.sp, fontWeight = FontWeight.Normal),
+    bodyMedium = TextStyle(fontFamily = sans, fontSize = 13.sp, fontWeight = FontWeight.Normal),
+    bodySmall = TextStyle(fontFamily = sans, fontSize = 12.sp, fontWeight = FontWeight.Normal),
+    labelLarge = TextStyle(fontFamily = sans, fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
+    labelMedium = TextStyle(fontFamily = sans, fontSize = 11.sp, fontWeight = FontWeight.Medium),
+    labelSmall = TextStyle(fontFamily = sans, fontSize = 10.sp, fontWeight = FontWeight.Medium)
 )
+
+object VbMono {
+    val Code = TextStyle(fontFamily = mono, fontSize = 12.sp, fontWeight = FontWeight.Normal, lineHeight = 18.sp)
+    val CodeSmall = TextStyle(fontFamily = mono, fontSize = 11.sp, fontWeight = FontWeight.Normal, lineHeight = 16.sp)
+    val Label = TextStyle(fontFamily = mono, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.5.sp)
+    val Stat = TextStyle(fontFamily = mono, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+}
