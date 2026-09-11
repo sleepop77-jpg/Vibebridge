@@ -75,8 +75,8 @@ fun CompilerScreen(vm: AppViewModel) {
                     }
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        VbButton(text = "COPY PROMPT", onClick = { val ok = VbClipboard.copy(ctx, "vibe-prompt", compiled); vm.banner(if (ok) "prompt copied" else "clipboard unavailable") }, modifier = Modifier.fillMaxWidth().padding(end = 5.dp))
-                        VbButtonSecondary(text = "SAVE TEMPLATE", onClick = { vm.history.addTemplate(idea.take(24), idea, target); vm.banner("template saved") }, modifier = Modifier.fillMaxWidth().padding(start = 5.dp))
+                        VbButton(text = "COPY PROMPT", onClick = { val ok = VbClipboard.copy(ctx, "vibe-prompt", compiled); vm.banner(if (ok) "prompt copied" else "clipboard unavailable") }, modifier = Modifier.weight(1f))
+                        VbButtonSecondary(text = "SAVE TEMPLATE", onClick = { vm.history.addTemplate(idea.take(24), idea, target); vm.banner("template saved") }, modifier = Modifier.weight(1f))
                     }
                 }
             }

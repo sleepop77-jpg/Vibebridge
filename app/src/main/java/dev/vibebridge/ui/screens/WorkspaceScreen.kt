@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -45,10 +44,6 @@ fun WorkspaceScreen(vm: WorkspaceViewModel, gotoGrab: () -> Unit) {
     val ui by vm.ui.collectAsState()
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         if (uri != null) vm.bindResult(ctx, uri)
-    }
-
-    LaunchedEffect(Unit) {
-        vm.refresh()
     }
 
     Column(
