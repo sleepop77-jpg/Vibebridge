@@ -35,6 +35,7 @@ import dev.vibebridge.ui.components.VbStat
 import dev.vibebridge.ui.components.VbToggle
 import dev.vibebridge.ui.theme.Bg
 import dev.vibebridge.ui.theme.Text
+import dev.vibebridge.ui.theme.TextDim
 import dev.vibebridge.viewmodel.AppViewModel
 
 @Composable

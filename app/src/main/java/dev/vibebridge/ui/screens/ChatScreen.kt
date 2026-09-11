@@ -54,6 +54,7 @@ import dev.vibebridge.ui.components.UserBubble
 import dev.vibebridge.ui.components.VbComposer
 import dev.vibebridge.ui.components.VbIcon
 import dev.vibebridge.ui.components.VbIconButton
+import dev.vibebridge.ui.components.VbIconView
 import dev.vibebridge.ui.components.VbWordmark
 import dev.vibebridge.ui.theme.Accent
 import dev.vibebridge.ui.theme.Bg
@@ -136,8 +137,12 @@ fun ChatScreen(vm: ChatViewModel, openSettings: () -> Unit) {
                             },
                             onApply = vm::applyLocal,
                             onPush = vm::push,
-                            onOpenRun = { url ->
-                                runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+                            onOpenRun = {
+                                if (msg is PushMsg) {
+                                    msg.runUrl?.let { url ->
+                                        runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+                                    }
+                                }
                             }
                         )
                     }

@@ -158,7 +158,8 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                     while (attempts < 24) {
                         delay(8000)
                         attempts++
-                        val runs = github.runs(secure.pat, owner, repo, prefs.branch).getOrNull() ?: continue
+                        val runsResult = github.runs(secure.pat, owner, repo, prefs.branch)
+                        val runs = (runsResult as? VbResult.Ok)?.value ?: continue
                         val active = runs.firstOrNull { it.status != "completed" }
                         if (active != null) {
                             updatePush(id) { it.copy(note = "run ${active.status}: ${active.name}") }
