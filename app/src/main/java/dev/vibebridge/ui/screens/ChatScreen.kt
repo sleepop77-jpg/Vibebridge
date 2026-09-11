@@ -30,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -49,7 +48,6 @@ import dev.vibebridge.core.PushMsg
 import dev.vibebridge.core.UserIdea
 import dev.vibebridge.core.UserPayload
 import dev.vibebridge.core.VbClipboard
-import dev.vibebridge.ui.components.BounceDots
 import dev.vibebridge.ui.components.GhostPillButton
 import dev.vibebridge.ui.components.MessageEnter
 import dev.vibebridge.ui.components.NoteBubble
@@ -63,6 +61,7 @@ import dev.vibebridge.ui.components.VbComposer
 import dev.vibebridge.ui.components.VbIcon
 import dev.vibebridge.ui.components.VbIconView
 import dev.vibebridge.ui.components.VbWordmark
+import dev.vibebridge.ui.theme.Bg
 import dev.vibebridge.ui.theme.Elevated
 import dev.vibebridge.ui.theme.GhostPill
 import dev.vibebridge.ui.theme.Text
@@ -78,7 +77,6 @@ private val TARGETS = listOf("QWEN STUDIO", "CHATGPT", "GEMINI")
 fun ChatScreen(vm: ChatViewModel, openSettings: () -> Unit) {
     val ctx = LocalContext.current
     val ui by vm.ui.collectAsState()
-    val expanded = remember { mutableStateMapOf<Long, Boolean>() }
     val listState = rememberLazyListState()
     var targetMenu by remember { mutableStateOf(false) }
     var target by remember { mutableStateOf(vm.currentTarget()) }
@@ -90,7 +88,7 @@ fun ChatScreen(vm: ChatViewModel, openSettings: () -> Unit) {
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().background(Bg)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -167,8 +165,6 @@ fun ChatScreen(vm: ChatViewModel, openSettings: () -> Unit) {
                     MessageEnter {
                         Bubble(
                             msg = msg,
-                            expanded = expanded[msg.id] == true,
-                            onToggle = { expanded[msg.id] = !(expanded[msg.id] == true) },
                             onCopyPrompt = { p ->
                                 VbClipboard.copy(ctx, "vibe-prompt", p)
                                 Toast.makeText(ctx, "prompt copied", Toast.LENGTH_SHORT).show()
@@ -228,8 +224,6 @@ fun ChatScreen(vm: ChatViewModel, openSettings: () -> Unit) {
 @Composable
 private fun Bubble(
     msg: ChatMsg,
-    expanded: Boolean,
-    onToggle: () -> Unit,
     onCopyPrompt: (String) -> Unit,
     onApply: () -> Unit,
     onPush: () -> Unit,
@@ -237,9 +231,9 @@ private fun Bubble(
 ) {
     when (msg) {
         is UserIdea -> UserBubble(msg.text)
-        is PromptMsg -> PromptBubble(msg, expanded, onToggle, { onCopyPrompt(msg.prompt) })
+        is PromptMsg -> PromptBubble(msg, { onCopyPrompt(msg.prompt) })
         is UserPayload -> PayloadBubble(msg)
-        is ParseMsg -> ParseBubble(msg, expanded, onToggle, onApply, onPush)
+        is ParseMsg -> ParseBubble(msg, onApply, onPush)
         is PushMsg -> PushBubble(msg, onOpenRun)
         is NoteMsg -> NoteBubble(msg)
     }

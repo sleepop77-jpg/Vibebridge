@@ -7,13 +7,11 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -21,11 +19,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import dev.vibebridge.ui.components.CloudSky
 import dev.vibebridge.ui.components.VbTab
 import dev.vibebridge.ui.components.WindowNav
 import dev.vibebridge.ui.screens.ChatScreen
@@ -33,9 +29,8 @@ import dev.vibebridge.ui.screens.ConnectScreen
 import dev.vibebridge.ui.screens.LibraryScreen
 import dev.vibebridge.ui.screens.SettingsScreen
 import dev.vibebridge.ui.screens.WorkspaceScreen
+import dev.vibebridge.ui.theme.Bg
 import dev.vibebridge.ui.theme.VbTheme
-import dev.vibebridge.ui.theme.Window
-import dev.vibebridge.ui.theme.WindowBorder
 import dev.vibebridge.viewmodel.AppViewModel
 import dev.vibebridge.viewmodel.ChatViewModel
 import dev.vibebridge.viewmodel.WorkspaceViewModel
@@ -74,34 +69,24 @@ fun Root() {
         return
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        CloudSky(still = vm.prefs.stillSky)
+    Box(modifier = Modifier.fillMaxSize().background(Bg)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(horizontal = 10.dp, vertical = 8.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(Window)
-                    .border(1.dp, WindowBorder, RoundedCornerShape(24.dp))
-            ) {
-                Box(modifier = Modifier.weight(1f)) {
-                    when {
-                        showSettings -> SettingsScreen(vm) { showSettings = false }
-                        else -> when (tab) {
-                            VbTab.CHAT -> ChatScreen(chatVm, openSettings = { showSettings = true })
-                            VbTab.FILES -> WorkspaceScreen(wsVm, gotoChat = { tab = VbTab.CHAT })
-                            VbTab.LIBRARY -> LibraryScreen(vm, goto = { tab = it })
-                        }
+            Box(modifier = Modifier.weight(1f)) {
+                when {
+                    showSettings -> SettingsScreen(vm) { showSettings = false }
+                    else -> when (tab) {
+                        VbTab.CHAT -> ChatScreen(chatVm, openSettings = { showSettings = true })
+                        VbTab.FILES -> WorkspaceScreen(wsVm, gotoChat = { tab = VbTab.CHAT })
+                        VbTab.LIBRARY -> LibraryScreen(vm, goto = { tab = it })
                     }
                 }
-                if (!showSettings) {
-                    WindowNav(current = tab, onSelect = { tab = it })
-                }
+            }
+            if (!showSettings) {
+                WindowNav(current = tab, onSelect = { tab = it })
             }
         }
     }

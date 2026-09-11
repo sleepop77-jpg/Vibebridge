@@ -22,11 +22,15 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.animation.core.RepeatMode
@@ -45,6 +49,7 @@ import dev.vibebridge.core.UserIdea
 import dev.vibebridge.core.UserPayload
 import dev.vibebridge.ui.theme.Accent
 import dev.vibebridge.ui.theme.ButtonGreen
+import dev.vibebridge.ui.theme.BubbleUser
 import dev.vibebridge.ui.theme.ComposerBg
 import dev.vibebridge.ui.theme.Danger
 import dev.vibebridge.ui.theme.Elevated
@@ -102,16 +107,35 @@ fun GreenPillButton(
 
 @Composable
 fun UserBubble(text: String) {
+    var expanded by remember { mutableStateOf(false) }
+    val isLong = text.length > 200
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End
     ) {
         Box(
             modifier = Modifier
-                .background(ComposerBg, RoundedCornerShape(20.dp, 20.dp, 4.dp, 20.dp))
+                .background(BubbleUser, RoundedCornerShape(20.dp, 20.dp, 4.dp, 20.dp))
                 .padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
-            Text(text, style = VbType.bodyLarge, color = Text)
+            Column {
+                Text(
+                    text, 
+                    style = VbType.bodyLarge, 
+                    color = Text, 
+                    maxLines = if (expanded || !isLong) Int.MAX_VALUE else 4,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (isLong) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = if (expanded) "show less" else "show more",
+                        style = VbMono.Label,
+                        color = TextFaint,
+                        modifier = Modifier.clickable { expanded = !expanded }
+                    )
+                }
+            }
         }
     }
 }
@@ -119,10 +143,10 @@ fun UserBubble(text: String) {
 @Composable
 fun PromptBubble(
     msg: PromptMsg,
-    expanded: Boolean,
-    onToggle: () -> Unit,
     onCopy: () -> Unit
 ) {
+    var expanded by remember { mutableStateOf(false) }
+    val isLong = msg.prompt.length > 250
     Column(modifier = Modifier.fillMaxWidth()) {
         Text("PROMPT • ${msg.target}", style = VbMono.Label, color = TextFaint)
         Spacer(Modifier.height(4.dp))
@@ -130,15 +154,22 @@ fun PromptBubble(
             msg.prompt,
             style = VbType.bodyLarge,
             color = Text,
-            maxLines = if (expanded) Int.MAX_VALUE else 4
+            maxLines = if (expanded || !isLong) Int.MAX_VALUE else 5,
+            overflow = TextOverflow.Ellipsis
         )
         Spacer(Modifier.height(6.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Box(Modifier.clickable(onClick = onCopy).padding(2.dp)) {
                 VbIconView(icon = VbIcon.COPY, color = TextFaint, size = 15.dp)
             }
-            Box(Modifier.clickable(onClick = onToggle).padding(2.dp)) {
-                VbIconView(icon = VbIcon.CHEVRON, color = TextFaint, size = 15.dp)
+            if (isLong) {
+                Box(Modifier.clickable(onClick = { expanded = !expanded }).padding(2.dp)) {
+                    Text(
+                        text = if (expanded) "collapse" else "expand",
+                        style = VbMono.Label,
+                        color = TextFaint
+                    )
+                }
             }
         }
     }
@@ -146,23 +177,36 @@ fun PromptBubble(
 
 @Composable
 fun PayloadBubble(msg: UserPayload) {
+    var expanded by remember { mutableStateOf(false) }
+    val isLong = msg.text.length > 200
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.End
     ) {
         Box(
             modifier = Modifier
-                .background(ComposerBg, RoundedCornerShape(20.dp, 20.dp, 4.dp, 20.dp))
+                .background(BubbleUser, RoundedCornerShape(20.dp, 20.dp, 4.dp, 20.dp))
                 .padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
             Column {
                 Text("AI RESPONSE PASTED", style = VbMono.Label, color = TextFaint)
                 Spacer(Modifier.height(3.dp))
                 Text(
-                    msg.text.take(200) + if (msg.text.length > 200) "…" else "",
+                    msg.text,
                     style = VbMono.CodeSmall,
-                    color = TextDim
+                    color = TextDim,
+                    maxLines = if (expanded || !isLong) Int.MAX_VALUE else 4,
+                    overflow = TextOverflow.Ellipsis
                 )
+                if (isLong) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = if (expanded) "show less" else "show more",
+                        style = VbMono.Label,
+                        color = TextFaint,
+                        modifier = Modifier.clickable { expanded = !expanded }
+                    )
+                }
             }
         }
     }
@@ -171,11 +215,10 @@ fun PayloadBubble(msg: UserPayload) {
 @Composable
 fun ParseBubble(
     msg: ParseMsg,
-    expanded: Boolean,
-    onToggle: () -> Unit,
     onApply: () -> Unit,
     onPush: () -> Unit
 ) {
+    var expanded by remember { mutableStateOf(false) }
     val creates = msg.rows.count { it.kind == "CREATE" }
     val edits = msg.rows.count { it.kind == "EDIT" }
     val deletes = msg.rows.count { it.kind == "DELETE" }
@@ -193,7 +236,7 @@ fun ParseBubble(
             if (deletes > 0) TagChip("DELETE $deletes", Danger)
         }
         Spacer(Modifier.height(8.dp))
-        val visible = if (expanded) msg.rows else msg.rows.take(3)
+        val visible = if (expanded || msg.rows.size <= 3) msg.rows else msg.rows.take(3)
         visible.forEach { r ->
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
@@ -217,7 +260,7 @@ fun ParseBubble(
                 if (expanded) "show less" else "show all ${msg.rows.size} files",
                 style = VbMono.Label,
                 color = TextFaint,
-                modifier = Modifier.clickable(onClick = onToggle)
+                modifier = Modifier.clickable(onClick = { expanded = !expanded })
             )
         }
         msg.warnings.forEach { w ->
