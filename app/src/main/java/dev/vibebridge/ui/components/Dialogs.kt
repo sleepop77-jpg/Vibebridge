@@ -8,6 +8,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import dev.vibebridge.ui.theme.AmberHi
 import dev.vibebridge.ui.theme.Card
 import dev.vibebridge.ui.theme.RedHi

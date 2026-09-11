@@ -1,7 +1,10 @@
 package dev.vibebridge.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -12,15 +15,14 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.vibebridge.ui.theme.Amber
 import dev.vibebridge.ui.theme.BorderStrong
 import dev.vibebridge.ui.theme.CardAlt
@@ -60,7 +62,7 @@ fun VbButton(
                 disabledContentColor = TextFaint
             )
         ) {
-            Text(text, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp())
+            Text(text, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
         }
         if (!enabled && disabledReason != null) {
             Text(
@@ -100,7 +102,7 @@ fun VbButtonSecondary(
                 disabledContentColor = TextFaint
             )
         ) {
-            Text(text, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp())
+            Text(text, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
         }
         if (!enabled && disabledReason != null) {
             Text(
@@ -137,7 +139,7 @@ fun VbButtonDanger(
             disabledContentColor = TextFaint
         )
     ) {
-        Text(text, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp())
+        Text(text, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
     }
 }
 
@@ -148,7 +150,7 @@ fun VbIconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    tint: androidx.compose.ui.graphics.Color = TextDim
+    tint: Color = TextDim
 ) {
     Box(
         modifier = modifier
@@ -160,6 +162,3 @@ fun VbIconButton(
         VbIconView(icon = icon, color = if (enabled) tint else TextFaint, size = 20.dp)
     }
 }
-
-private fun sp(v: Int): androidx.compose.ui.unit.TextUnit = androidx.compose.ui.unit.sp(v)
-private fun sp(v: Float): androidx.compose.ui.unit.TextUnit = androidx.compose.ui.unit.sp(v)

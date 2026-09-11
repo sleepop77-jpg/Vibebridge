@@ -81,15 +81,15 @@ class Workspace(val root: File) {
                         if (delete(op.path)) { deleted++; reports += OpReport(op.path, OpStatus.DELETE, "removed") }
                         else { errors += "missing ${op.path}"; reports += OpReport(op.path, OpStatus.MISSING, "not found") }
                     }
-                    is BridgeOp.EditOp -> {
-                        val cur = read(op.path)
-                        if (cur == null) {
-                            errors += "missing ${op.path}"
-                            reports += OpReport(op.path, OpStatus.MISSING, "not found")
-                            continue
-                        }
-                        backup(op.path)
-                        var content = cur
+                                    is BridgeOp.EditOp -> {
+                    val cur = read(op.path)
+                    if (cur == null) {
+                        errors += "missing ${op.path}"
+                        reports += OpReport(op.path, OpStatus.MISSING, "not found")
+                        continue
+                    }
+                    backup(op.path)
+                    var content: String = cur
                         var matchedAll = true
                         for (h in op.hunks) {
                             val next = BridgeParser.applyEdit(content, h.find, h.replace)
