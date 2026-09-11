@@ -50,6 +50,7 @@ import dev.vibebridge.ui.theme.Danger
 import dev.vibebridge.ui.theme.Elevated
 import dev.vibebridge.ui.theme.GhostPill
 import dev.vibebridge.ui.theme.PureBlack
+import dev.vibebridge.ui.theme.PureWhite
 import dev.vibebridge.ui.theme.Text
 import dev.vibebridge.ui.theme.TextDim
 import dev.vibebridge.ui.theme.TextFaint

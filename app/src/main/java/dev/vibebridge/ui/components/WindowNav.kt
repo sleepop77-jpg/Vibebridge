@@ -1,5 +1,6 @@
 package dev.vibebridge.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -61,15 +63,10 @@ fun WindowNav(
                         Modifier
                             .size(3.dp)
                             .clip(CircleShape)
-                            .then(
-                                if (sel) Modifier.backgroundAccent() else Modifier
-                            )
+                            .background(if (sel) Accent else Color.Transparent)
                     )
                 }
             }
         }
     }
 }
-
-private fun Modifier.backgroundAccent(): Modifier =
-    this.then(androidx.compose.foundation.background(Accent, CircleShape))

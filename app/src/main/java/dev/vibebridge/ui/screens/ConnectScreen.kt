@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -53,7 +54,7 @@ fun ConnectScreen(vm: AppViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 14.dp, vertical = 24.dp)
-                .then(androidx.compose.foundation.layout.statusBarsPadding())
+                .statusBarsPadding()
         ) {
             Column(
                 modifier = Modifier
@@ -80,50 +81,3 @@ fun ConnectScreen(vm: AppViewModel) {
                     onValueChange = { pat = it },
                     placeholder = "github_pat_",
                     isPassword = true,
-                    error = ui.validateError
-                )
-                VbField(
-                    label = "OWNER / NAME",
-                    value = repo,
-                    onValueChange = { repo = it },
-                    placeholder = "username/repo"
-                )
-                VbField(
-                    label = "DEFAULT BRANCH",
-                    value = branch,
-                    onValueChange = { branch = it },
-                    placeholder = "main"
-                )
-                if (ui.validating) {
-                    BounceDots()
-                } else {
-                    val enabled = pat.isNotBlank() && repo.contains("/")
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(if (enabled) ButtonGreen else WindowBorder, RoundedCornerShape(24.dp))
-                            .clickable(enabled = enabled) { vm.saveConnect(pat, repo, branch) }
-                            .padding(vertical = 13.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "CONNECT",
-                            color = if (enabled) Text else TextFaint,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                    if (!enabled) {
-                        Text("token and an owner/name repository are required", color = TextFaint, fontSize = 11.sp)
-                    }
-                }
-                Text(
-                    "1. github.com → settings → developer settings → fine-grained tokens\n2. repository access: only the repo named above\n3. permissions: Contents read and write",
-                    style = VbType.bodySmall,
-                    color = TextFaint,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
-}
