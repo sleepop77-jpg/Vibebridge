@@ -89,20 +89,40 @@ fun StarField(modifier: Modifier = Modifier, count: Int = 42) {
     }
 }
 
-private val BUNNY_ROWS = listOf(
-    ".##....##.",
-    ".##....##.",
-    ".###..###.",
-    ".########.",
-    "##R####R##",
-    "##########",
-    "####PP####",
-    ".########.",
-    ".########.",
-    "##########",
-    "##########",
-    "..##..##.."
-)
+private const val BUNNY_COLS = 104
+private const val BUNNY_ROWS = 120
+
+private fun ellipse(u: Float, v: Float, cx: Float, cy: Float, rx: Float, ry: Float): Boolean {
+    val dx = (u - cx) / rx
+    val dy = (v - cy) / ry
+    return dx * dx + dy * dy <= 1f
+}
+
+private fun capsule(u: Float, v: Float, cx: Float, yTop: Float, yBot: Float, r: Float): Boolean {
+    val ay = yTop + r
+    val by = yBot - r
+    val py = v.coerceIn(ay, by)
+    val dx = u - cx
+    val dy = v - py
+    return dx * dx + dy * dy <= r * r
+}
+
+private fun bunnyColorAt(u: Float, v: Float, blinking: Boolean): Color? {
+    if (!blinking) {
+        if (ellipse(u, v, 0.375f, 0.415f, 0.055f, 0.045f)) return Color(0xFFFF4D4D)
+        if (ellipse(u, v, 0.625f, 0.415f, 0.055f, 0.045f)) return Color(0xFFFF4D4D)
+    }
+    if (ellipse(u, v, 0.5f, 0.50f, 0.030f, 0.022f)) return Color(0xFFFFB6C1)
+    if (ellipse(u, v, 0.30f, 0.16f, 0.030f, 0.09f)) return Color(0xFFFFD9E0)
+    if (ellipse(u, v, 0.70f, 0.16f, 0.030f, 0.09f)) return Color(0xFFFFD9E0)
+    if (capsule(u, v, 0.30f, 0.03f, 0.30f, 0.075f)) return Color.White
+    if (capsule(u, v, 0.70f, 0.03f, 0.30f, 0.075f)) return Color.White
+    if (ellipse(u, v, 0.5f, 0.42f, 0.30f, 0.17f)) return Color.White
+    if (ellipse(u, v, 0.5f, 0.74f, 0.28f, 0.20f)) return Color.White
+    if (ellipse(u, v, 0.36f, 0.945f, 0.10f, 0.045f)) return Color.White
+    if (ellipse(u, v, 0.64f, 0.945f, 0.10f, 0.045f)) return Color.White
+    return null
+}
 
 @Composable
 fun PixelBunny(modifier: Modifier = Modifier) {
@@ -121,20 +141,15 @@ fun PixelBunny(modifier: Modifier = Modifier) {
         label = "blink"
     )
     val blinking = blink > 0.96f
-    Canvas(modifier.aspectRatio(10f / 12f)) {
-        val cell = size.width / 10f
-        val off = (bob - 0.5f) * cell * 0.8f
-        BUNNY_ROWS.forEachIndexed { ry, row ->
-            row.forEachIndexed { cx, ch ->
-                val color = when {
-                    ch == '#' -> Color.White
-                    ch == 'R' -> if (blinking) Color.White else Color(0xFFFF4D4D)
-                    ch == 'P' -> Color(0xFFFFB6C1)
-                    else -> null
-                }
-                if (color != null) {
-                    drawRect(color, Offset(cx * cell, ry * cell + off), Size(cell + 0.5f, cell + 0.5f))
-                }
+    Canvas(modifier.aspectRatio(BUNNY_COLS.toFloat() / BUNNY_ROWS.toFloat())) {
+        val cell = size.width / BUNNY_COLS
+        val off = (bob - 0.5f) * cell * 0.4f
+        for (ry in 0 until BUNNY_ROWS) {
+            for (cx in 0 until BUNNY_COLS) {
+                val u = (cx + 0.5f) / BUNNY_COLS
+                val v = (ry + 0.5f) / BUNNY_ROWS
+                val color = bunnyColorAt(u, v, blinking) ?: continue
+                drawRect(color, Offset(cx * cell, ry * cell + off), Size(cell + 0.5f, cell + 0.5f))
             }
         }
     }

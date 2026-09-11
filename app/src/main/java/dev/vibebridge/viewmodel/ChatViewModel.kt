@@ -207,31 +207,29 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun extractErrors(log: String): List<String> {
-        val patterns = listOf(
-            Regex("""\be: file://[^\n]+"""),
-            Regex("""\berror: [^\n]+"""),
-            Regex("""\bFAILURE: [^\n]+"""),
-            Regex("""Execution failed for task [^\n]+"""),
-            Regex("""What went wrong:[^\n]*""")
-        )
-        val errors = mutableListOf<String>()
+        val out = mutableListOf<String>()
         val seen = mutableSetOf<String>()
-        
-        for (line in log.lines()) {
-            val cleaned = line.replace(Regex("""^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z\s*"""), "")
-            for (pattern in patterns) {
-                val match = pattern.find(cleaned)
-                if (match != null) {
-                    val err = match.value.trim()
-                    if (err !in seen) {
-                        seen.add(err)
-                        errors.add(err)
-                    }
-                    break
+        val ePattern = Regex("e: file://[^\\n]*")
+        for (m in ePattern.findAll(log)) {
+            val v = m.value.trim()
+            if (seen.add(v)) out.add(v)
+        }
+        if (out.isEmpty()) {
+            for (line in log.lines()) {
+                val idx = line.indexOf("error:")
+                if (idx >= 0) {
+                    val v = line.substring(idx).trim()
+                    if (seen.add(v)) out.add(v)
                 }
             }
         }
-        return errors
+        if (out.isEmpty()) {
+            val w = log.indexOf("What went wrong:")
+            if (w >= 0) {
+                out.add(log.substring(w, (w + 800).coerceAtMost(log.length)).trim())
+            }
+        }
+        return out
     }
 
     fun copyErrors(runId: Long) {
@@ -264,6 +262,11 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 appendLine("## Extracted errors (${errs.size})")
                 appendLine("```text")
                 errs.forEach { appendLine(it) }
+                appendLine("```")
+                appendLine()
+                appendLine("## Log head (first 4k chars)")
+                appendLine("```text")
+                appendLine(log.take(4000))
                 appendLine("```")
                 appendLine()
                 appendLine("## Full log (tail 20k chars)")
