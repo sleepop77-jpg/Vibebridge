@@ -40,6 +40,9 @@ class Prefs(ctx: Context) {
     var clientId: String
         get() = p.getString("client_id", "") ?: ""
         set(v) = p.edit().putString("client_id", v).apply()
+    var tourDone: Boolean
+        get() = p.getBoolean("tour_done", false)
+        set(v) = p.edit().putBoolean("tour_done", v).apply()
 
     val configured: Boolean get() = repo.contains("/")
 
