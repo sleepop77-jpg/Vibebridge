@@ -56,6 +56,7 @@ import dev.vibebridge.ui.theme.ComposerBg
 import dev.vibebridge.ui.theme.Danger
 import dev.vibebridge.ui.theme.Elevated
 import dev.vibebridge.ui.theme.GhostPill
+import dev.vibebridge.ui.theme.Inset
 import dev.vibebridge.ui.theme.PureBlack
 import dev.vibebridge.ui.theme.PureWhite
 import dev.vibebridge.ui.theme.Text
@@ -310,6 +311,13 @@ private fun TagChip(text: String, color: Color) {
 }
 
 @Composable
+private fun isLogErrLine(line: String): Boolean =
+    line.startsWith("e: ") || line.startsWith("e: file:") ||
+        line.contains(" error:") || line.contains(" Error:") ||
+        line.startsWith("FAILURE:") || line.startsWith("Execution failed") ||
+        line.startsWith("What went wrong")
+
+@Composable
 fun PushBubble(
     msg: PushMsg,
     onOpenRun: () -> Unit,
@@ -340,10 +348,43 @@ fun PushBubble(
         }
         Spacer(Modifier.height(6.dp))
         when (msg.state) {
-            PushState.PREPARING, PushState.COMMITTING, PushState.POLLING -> {
+            PushState.PREPARING, PushState.COMMITTING -> {
                 Text(msg.note ?: "working…", style = VbMono.CodeSmall, color = TextDim)
                 Spacer(Modifier.height(6.dp))
                 BounceDots()
+                Spacer(Modifier.height(10.dp))
+                WaitFactCard()
+            }
+            PushState.POLLING -> {
+                Text(msg.note ?: "waiting…", style = VbMono.CodeSmall, color = TextDim)
+                Spacer(Modifier.height(6.dp))
+                BounceDots()
+                val tail = msg.logTail
+                if (!tail.isNullOrEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Inset, RoundedCornerShape(8.dp))
+                            .padding(horizontal = 10.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
+                        tail.forEach { line ->
+                            val err = isLogErrLine(line)
+                            val display = if (line.length > 90) line.take(90) + "…" else line
+                            Text(
+                                display,
+                                style = VbMono.CodeSmall,
+                                color = if (err) Danger else TextFaint,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                } else {
+                    Spacer(Modifier.height(6.dp))
+                    Text("awaiting first log lines…", style = VbMono.CodeSmall, color = TextFaint)
+                }
                 Spacer(Modifier.height(10.dp))
                 WaitFactCard()
             }

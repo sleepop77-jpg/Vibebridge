@@ -174,36 +174,50 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                         val runs = (runsResult as? VbResult.Ok)?.value ?: continue
                         val active = runs.firstOrNull { it.status != "completed" }
                         if (active != null) {
-                            updatePush(id) { it.copy(note = "run ${active.status}: ${active.name}") }
+                            val log = fetchLog(active.id, force = true)
+                            val tail = if (log != null) tailLines(log, 3) else null
+                            updatePush(id) {
+                                it.copy(
+                                    note = "run ${active.status}: ${active.name}",
+                                    logTail = tail
+                                )
+                            }
                             continue
                         }
                         val done = runs.firstOrNull() ?: continue
                         history.setCi(recId, done.conclusion)
-                        updatePush(id) { it.copy(state = PushState.DONE, conclusion = done.conclusion, note = "run finished", runId = done.id) }
+                        updatePush(id) {
+                            it.copy(
+                                state = PushState.DONE,
+                                conclusion = done.conclusion,
+                                note = "run finished",
+                                runId = done.id,
+                                logTail = null
+                            )
+                        }
                         return@launch
                     }
-                    updatePush(id) { it.copy(state = PushState.DONE, conclusion = "unknown", note = "poll window ended") }
+                    updatePush(id) { it.copy(state = PushState.DONE, conclusion = "unknown", note = "poll window ended", logTail = null) }
                 }
             }
         }
     }
 
-    private suspend fun fetchLog(runId: Long): String? {
-        logCache?.let { if (it.first == runId) return it.second }
+    private fun tailLines(log: String, n: Int): List<String> =
+        log.lines().filter { it.isNotBlank() }.takeLast(n)
+
+    private suspend fun fetchLog(runId: Long, force: Boolean = false): String? {
+        if (!force) {
+            logCache?.let { if (it.first == runId) return it.second }
+        }
         val (owner, repo) = prefs.splitRepo()
         val jobsResult = github.jobs(secure.pat, owner, repo, runId)
         val jobs = (jobsResult as? VbResult.Ok)?.value
-        if (jobs.isNullOrEmpty()) {
-            append(NoteMsg(nextId(), "no jobs found for this run", NoteKind.WARN))
-            return null
-        }
+        if (jobs.isNullOrEmpty()) return null
         val failed = jobs.firstOrNull { it.conclusion == "failure" } ?: jobs.first()
         val logResult = github.jobLog(secure.pat, owner, repo, failed.id)
         val log = (logResult as? VbResult.Ok)?.value
-        if (log.isNullOrBlank()) {
-            append(NoteMsg(nextId(), "could not fetch job log", NoteKind.WARN))
-            return null
-        }
+        if (log.isNullOrBlank()) return null
         logCache = runId to log
         return log
     }
