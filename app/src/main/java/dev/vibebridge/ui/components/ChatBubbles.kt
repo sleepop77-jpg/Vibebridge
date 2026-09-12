@@ -342,6 +342,8 @@ fun PushBubble(
                 Text(msg.note ?: "working…", style = VbMono.CodeSmall, color = TextDim)
                 Spacer(Modifier.height(6.dp))
                 BounceDots()
+                Spacer(Modifier.height(10.dp))
+                WaitFactCard()
             }
             PushState.DONE -> {
                 msg.sha?.let { Text("commit ${it.take(7)}", style = VbMono.Code, color = Text) }

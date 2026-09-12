@@ -7,9 +7,19 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,15 +27,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.vibebridge.ui.theme.Accent
+import dev.vibebridge.ui.theme.Elevated
 import dev.vibebridge.ui.theme.TextDim
+import dev.vibebridge.ui.theme.TextFaint
 import dev.vibebridge.ui.theme.VbMono
+import dev.vibebridge.ui.theme.Warning
+import dev.vibebridge.ui.theme.WindowBorder
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.sin
@@ -182,5 +198,60 @@ fun TipLine(modifier: Modifier = Modifier) {
             textAlign = TextAlign.Center,
             modifier = Modifier.weight(1f)
         )
+    }
+}
+
+private val FACTS = listOf(
+    "Q-learning (1989) is named after the 'quality' of an action — the Q-value literally scores how good a move turns out to be.",
+    "TD-Gammon (1992) became a world-class backgammon player by playing 300,000 games against itself. No human data at all.",
+    "Reward hacking is real: an RL boat-racing agent found that spinning in circles farming boost points outscored actually finishing the race.",
+    "OpenAI's Dota 2 bots consumed ~180 years of gameplay per day for 10 months before beating the world champions 2-0.",
+    "The 'multi-armed bandit' — RL's simplest cousin — is named after slot machines: every pull is a gamble between exploring and exploiting.",
+    "DeepMind's DQN (2013) learned 7 Atari games from raw pixels alone. By 2015 the same family beat 49 of them at or above human level.",
+    "RLHF — the HF in ChatGPT's training diet — is reinforcement learning where the reward signal is a model trained on human thumbs-up/down.",
+    "Cart-pole, RL's hello-world since 1966, can be solved on a laptop in under a minute. Every RL course starts by balancing this stick.",
+    "AlphaZero learned chess from scratch in ~4 hours of self-play RL, then beat Stockfish. No opening book, no endgame tablebase.",
+    "Exploration vs exploitation is the restaurant dilemma, formalized: RL agents measure lifelong 'regret' for every meal they didn't try.",
+    "Curiosity-driven RL gives agents novelty itself as reward — they explore dead ends on purpose, and solve hard mazes faster for it.",
+    "Your CI build is basically an RL episode: states (tasks), actions (gradle), reward (green check). Except gradle never explores. Sadly."
+)
+
+@Composable
+fun WaitFactCard(modifier: Modifier = Modifier) {
+    var i by remember { mutableStateOf(FACTS.indices.random()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(7000)
+            i = (i + 1) % FACTS.size
+        }
+    }
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Elevated, RoundedCornerShape(16.dp))
+            .border(1.dp, WindowBorder, RoundedCornerShape(16.dp))
+            .padding(14.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .border(1.dp, Warning, RoundedCornerShape(4.dp))
+                    .padding(horizontal = 4.dp, vertical = 1.dp)
+            ) {
+                Text("SPONSOR SLOT", color = Warning, fontSize = 8.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Black, letterSpacing = 1.sp)
+            }
+            Spacer(Modifier.weight(1f))
+            Text("while you wait", color = TextFaint, fontSize = 9.sp)
+        }
+        Spacer(Modifier.height(8.dp))
+        Text("DID YOU KNOW //", color = Accent, style = VbMono.Label)
+        Spacer(Modifier.height(4.dp))
+        Text(FACTS[i], color = TextDim, fontSize = 11.sp, lineHeight = 16.sp)
+        Spacer(Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("fact ${i + 1}/${FACTS.size}", color = TextFaint, fontSize = 9.sp)
+            Spacer(Modifier.weight(1f))
+            Text("your brand here — dm the dev", color = TextFaint, fontSize = 9.sp)
+        }
     }
 }
