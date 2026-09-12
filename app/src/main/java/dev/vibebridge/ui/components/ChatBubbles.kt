@@ -316,7 +316,8 @@ fun PushBubble(
     onCopyErrors: () -> Unit,
     onSaveMd: () -> Unit,
     onSaveApk: () -> Unit,
-    onShareApk: () -> Unit
+    onShareApk: () -> Unit,
+    onFixIt: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -362,11 +363,16 @@ fun PushBubble(
                         GhostPillButton("SHARE APK", onShareApk)
                     } else {
                         GhostPillButton("SAVE .MD", onSaveMd)
+                        GhostPillButton("FIX IT", onFixIt, tint = Warning)
                     }
                 }
             }
             PushState.FAILED -> {
                 Text(msg.note ?: "push failed", style = VbMono.CodeSmall, color = Danger)
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    GhostPillButton("FIX IT", onFixIt, tint = Warning)
+                }
             }
         }
     }

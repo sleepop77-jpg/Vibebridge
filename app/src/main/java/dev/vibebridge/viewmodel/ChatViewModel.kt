@@ -232,6 +232,34 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         return out
     }
 
+    fun fixIt(runId: Long?, fallback: String? = null) {
+        viewModelScope.launch {
+            val errs = if (runId != null) {
+                val log = fetchLog(runId)
+                if (log == null) {
+                    listOfNotNull(fallback).filter { it.isNotBlank() }
+                } else {
+                    extractErrors(log).ifEmpty { log.lines().filter { it.isNotBlank() }.takeLast(30) }
+                }
+            } else {
+                listOfNotNull(fallback).filter { it.isNotBlank() }
+            }
+            if (errs.isEmpty()) {
+                append(NoteMsg(nextId(), "no error text found to build a fix prompt", NoteKind.WARN))
+                return@launch
+            }
+            val idea = buildString {
+                appendLine("My Android Kotlin app CI build failed with these compiler/gradle errors:")
+                appendLine("```")
+                errs.take(25).forEach { appendLine(it) }
+                appendLine("```")
+                appendLine("Fix every error above in the exact files mentioned. Reply with a bridge payload only.")
+            }
+            append(PromptMsg(nextId(), PromptTemplates.compile(idea, prefs.target), prefs.target))
+            append(NoteMsg(nextId(), "fix prompt compiled from ${errs.size} error lines — copy it into your AI chat", NoteKind.INFO))
+        }
+    }
+
     fun copyErrors(runId: Long) {
         viewModelScope.launch {
             val log = fetchLog(runId) ?: return@launch
