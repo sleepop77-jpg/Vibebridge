@@ -3,9 +3,11 @@ package dev.vibebridge.viewmodel
 import android.app.Application
 import android.content.ContentValues
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.provider.Settings
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -373,6 +375,43 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
             }
             share.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             ctx.startActivity(Intent.createChooser(share, "Share APK").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
+    }
+
+    fun installApk(runId: Long, sha: String?) {
+        val (owner, repo) = prefs.splitRepo()
+        if (owner.isBlank() || secure.pat.isBlank()) return
+        append(NoteMsg(nextId(), "fetching artifact for install...", NoteKind.INFO))
+        viewModelScope.launch {
+            val bytes = fetchApk(runId) ?: return@launch
+            val ctx = getApplication<Application>()
+            val apkFile = File(ctx.filesDir, "out/install/vibebridge-install.apk")
+            apkFile.parentFile?.mkdirs()
+            apkFile.writeBytes(bytes)
+            if (!ctx.packageManager.canRequestPackageInstalls()) {
+                append(
+                    NoteMsg(
+                        nextId(),
+                        "one-time: allow 'install unknown apps' for vibebridge, then tap install again",
+                        NoteKind.WARN
+                    )
+                )
+                runCatching {
+                    ctx.startActivity(
+                        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${ctx.packageName}"))
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
+                }
+                return@launch
+            }
+            val uri = FileProvider.getUriForFile(ctx, ctx.packageName + ".vbfiles", apkFile)
+            val install = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            runCatching { ctx.startActivity(install) }
+                .onFailure { append(NoteMsg(nextId(), "installer failed: ${it.message}", NoteKind.ERROR)) }
         }
     }
 

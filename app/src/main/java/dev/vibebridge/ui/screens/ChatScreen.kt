@@ -166,7 +166,8 @@ fun ChatScreen(vm: ChatViewModel, openSettings: () -> Unit) {
                                 onSaveMd = { if (msg is PushMsg) msg.runId?.let { vm.saveErrorsMd(it, msg.sha) } },
                                 onSaveApk = { if (msg is PushMsg) msg.runId?.let { vm.saveApkToDownloads(it, msg.sha) } },
                                 onShareApk = { if (msg is PushMsg) msg.runId?.let { vm.shareApk(it) } },
-                                onFixIt = { if (msg is PushMsg) vm.fixIt(msg.runId, msg.note) }
+                                onFixIt = { if (msg is PushMsg) vm.fixIt(msg.runId, msg.note) },
+                                onInstall = { if (msg is PushMsg) msg.runId?.let { vm.installApk(it, msg.sha) } }
                             )
                         }
                     }
@@ -231,14 +232,15 @@ private fun Bubble(
     onSaveMd: () -> Unit,
     onSaveApk: () -> Unit,
     onShareApk: () -> Unit,
-    onFixIt: () -> Unit
+    onFixIt: () -> Unit,
+    onInstall: () -> Unit
 ) {
     when (msg) {
         is UserIdea -> UserBubble(msg.text)
         is PromptMsg -> PromptBubble(msg, { onCopyPrompt(msg.prompt) })
         is UserPayload -> PayloadBubble(msg)
         is ParseMsg -> ParseBubble(msg, onApply, onPush)
-        is PushMsg -> PushBubble(msg, onOpenRun, onCopyErrors, onSaveMd, onSaveApk, onShareApk, onFixIt)
+        is PushMsg -> PushBubble(msg, onOpenRun, onCopyErrors, onSaveMd, onSaveApk, onShareApk, onFixIt, onInstall)
         is NoteMsg -> NoteBubble(msg)
     }
 }

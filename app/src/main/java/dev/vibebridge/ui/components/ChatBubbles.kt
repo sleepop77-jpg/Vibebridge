@@ -317,7 +317,8 @@ fun PushBubble(
     onSaveMd: () -> Unit,
     onSaveApk: () -> Unit,
     onShareApk: () -> Unit,
-    onFixIt: () -> Unit
+    onFixIt: () -> Unit,
+    onInstall: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -361,6 +362,7 @@ fun PushBubble(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (msg.conclusion == "success") {
                         GhostPillButton("SHARE APK", onShareApk)
+                        GreenPillButton("INSTALL", onInstall)
                     } else {
                         GhostPillButton("SAVE .MD", onSaveMd)
                         GhostPillButton("FIX IT", onFixIt, tint = Warning)
