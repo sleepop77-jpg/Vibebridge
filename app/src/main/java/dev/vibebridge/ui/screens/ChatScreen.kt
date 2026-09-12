@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -97,6 +98,7 @@ private val MODELS = listOf(
     "GEMINI" to "small hunks"
 )
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ChatScreen(vm: ChatViewModel, openSettings: () -> Unit) {
     val ctx = LocalContext.current

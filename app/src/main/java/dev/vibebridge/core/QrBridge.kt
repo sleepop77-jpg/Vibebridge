@@ -27,7 +27,7 @@ object QrBridge {
         val w = bmp.width
         val h = bmp.height
         val pixels = IntArray(w * h)
-        bmp.getPixels(pixels, 0, w, 0, w, h)
+bmp.getPixels(pixels, 0, w, 0, 0, w, h)
         val source = RGBLuminanceSource(w, h, pixels)
         MultiFormatReader().decode(BinaryBitmap(HybridBinarizer(source))).text
     } catch (e: Exception) {
