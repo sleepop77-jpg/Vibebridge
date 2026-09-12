@@ -12,12 +12,11 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -39,7 +38,7 @@ fun WindowNav(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth().navigationBarsPadding()) {
-        Divider(color = WindowBorder, thickness = 1.dp)
+        HorizontalDivider(color = WindowBorder, thickness = 1.dp)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -63,7 +62,9 @@ fun WindowNav(
                         Modifier
                             .size(3.dp)
                             .clip(CircleShape)
-                            .background(if (sel) Accent else Color.Transparent)
+                            .then(
+                                if (sel) Modifier.background(Accent, CircleShape) else Modifier
+                            )
                     )
                 }
             }
