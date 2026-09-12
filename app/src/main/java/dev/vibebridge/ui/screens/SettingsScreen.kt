@@ -24,8 +24,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.vibebridge.BuildConfig
+import dev.vibebridge.ui.components.RepoPickerSheet
 import dev.vibebridge.ui.components.Stagger
 import dev.vibebridge.ui.components.VbButtonDanger
+import dev.vibebridge.ui.components.VbButtonSecondary
 import dev.vibebridge.ui.components.VbConfirmDialog
 import dev.vibebridge.ui.components.VbIcon
 import dev.vibebridge.ui.components.VbIconButton
@@ -44,6 +46,7 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
     var confirmDisconnect by remember { mutableStateOf(false) }
     var autoClip by remember { mutableStateOf(vm.prefs.autoClip) }
     var target by remember { mutableStateOf(vm.prefs.target) }
+    var showPicker by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -62,10 +65,17 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
         Stagger(1) {
             VbPanel(title = "ACCOUNT") {
                 VbStat("LOGIN", ui.login ?: "unverified")
+                VbStat("TOKEN", if (vm.prefs.tokenKind == "oauth") "github oauth (device flow)" else "fine-grained pat")
                 VbStat("REPO", vm.prefs.repo.ifBlank { "not set" })
                 VbStat("BRANCH", vm.prefs.branch)
                 VbStat("TOKEN STORAGE", if (vm.secure.secure) "encrypted keystore" else "fallback store")
                 Spacer(Modifier.height(10.dp))
+                VbButtonSecondary(
+                    text = "CHANGE REPOSITORY",
+                    onClick = { showPicker = true },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
                 VbButtonDanger(text = "DISCONNECT TOKEN", onClick = { confirmDisconnect = true }, modifier = Modifier.fillMaxWidth())
             }
         }
@@ -111,11 +121,24 @@ fun SettingsScreen(vm: AppViewModel, onBack: () -> Unit) {
     if (confirmDisconnect) {
         VbConfirmDialog(
             title = "DISCONNECT TOKEN",
-            body = "The PAT will be erased from this device. Push and CI features stop until a new token is saved.",
+            body = "The PAT or OAuth token will be erased from this device. Push and CI features stop until a new login.",
             confirmLabel = "ERASE",
             onConfirm = { vm.disconnect(); confirmDisconnect = false },
             onDismiss = { confirmDisconnect = false },
             danger = true
+        )
+    }
+
+    if (showPicker) {
+        RepoPickerSheet(
+            token = vm.secure.pat,
+            current = vm.prefs.repo,
+            onPick = { picked ->
+                vm.prefs.repo = picked
+                showPicker = false
+                vm.refresh()
+            },
+            onDismiss = { showPicker = false }
         )
     }
 }

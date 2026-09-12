@@ -65,6 +65,17 @@ class GitHubClient {
     suspend fun validatePat(pat: String): VbResult<String> =
         raw(pat, "GET", "/user", null).map { JSONObject(it.body).optString("login", "unknown") }
 
+    suspend fun repos(pat: String): VbResult<List<RepoInfo>> =
+        raw(pat, "GET", "/user/repos?per_page=100&sort=pushed&direction=desc", null).map {
+            val out = mutableListOf<RepoInfo>()
+            val a = JSONArray(it.body)
+            for (i in 0 until a.length()) {
+                val o = a.getJSONObject(i)
+                out += RepoInfo(o.optString("full_name"), o.optBoolean("private"), o.optString("pushed_at"))
+            }
+            out
+        }
+
     suspend fun commitOps(
         pat: String,
         owner: String,

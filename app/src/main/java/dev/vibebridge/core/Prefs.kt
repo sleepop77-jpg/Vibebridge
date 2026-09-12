@@ -34,6 +34,12 @@ class Prefs(ctx: Context) {
     var lastRunId: Long
         get() = p.getLong("last_run", 0L)
         set(v) = p.edit().putLong("last_run", v).apply()
+    var tokenKind: String
+        get() = p.getString("token_kind", "pat") ?: "pat"
+        set(v) = p.edit().putString("token_kind", v).apply()
+    var clientId: String
+        get() = p.getString("client_id", "") ?: ""
+        set(v) = p.edit().putString("client_id", v).apply()
 
     val configured: Boolean get() = repo.contains("/")
 
