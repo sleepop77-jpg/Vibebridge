@@ -2,6 +2,7 @@ package dev.vibebridge.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,8 +27,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.vibebridge.core.PromptTemplates
+import dev.vibebridge.core.PushRecord
 import dev.vibebridge.core.VbClipboard
+import dev.vibebridge.ui.components.BannerKind
 import dev.vibebridge.ui.components.Stagger
+import dev.vibebridge.ui.components.VbBanner
+import dev.vibebridge.ui.components.VbConfirmDialog
 import dev.vibebridge.ui.components.VbEmpty
 import dev.vibebridge.ui.components.VbIcon
 import dev.vibebridge.ui.components.VbIconButton
@@ -46,20 +51,21 @@ import dev.vibebridge.viewmodel.AppViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-private fun ciColor(ci: String): Color = when (ci) { 
+private fun ciColor(ci: String): Color = when (ci) {
     "success" -> Accent
     "failure" -> Danger
-    else -> Warning 
+    else -> Warning
 }
 
 @Composable
 fun LibraryScreen(vm: AppViewModel, goto: (VbTab) -> Unit) {
     val ctx = LocalContext.current
-    val ui by vm.ui.collectAsState()
     var tab by remember { mutableStateOf("TEMPLATES") }
     var refreshKey by remember { mutableStateOf(0) }
+    var confirmRevert by remember { mutableStateOf<PushRecord?>(null) }
     val saved = remember(refreshKey) { vm.history.templates() }
     val pushes = remember(refreshKey) { vm.history.pushes() }
+    val ui by vm.ui.collectAsState()
     val dateFmt = remember { SimpleDateFormat("MMM dd HH:mm", Locale.US) }
 
     Column(
@@ -70,23 +76,21 @@ fun LibraryScreen(vm: AppViewModel, goto: (VbTab) -> Unit) {
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Stagger(0) { 
-            Text("LIBRARY", color = Text, fontSize = 20.sp, fontWeight = FontWeight.Bold) 
+        Stagger(0) {
+            Text("LIBRARY", color = Text, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
-        
-        Stagger(1) { 
-            VbSegmented(options = listOf("TEMPLATES", "HISTORY"), selected = tab, onSelect = { tab = it }) 
+        Stagger(1) {
+            VbSegmented(options = listOf("TEMPLATES", "HISTORY"), selected = tab, onSelect = { tab = it })
         }
-        
         if (tab == "TEMPLATES") {
             Stagger(2) {
                 VbPanel(title = "BUILTIN STARTERS") {
                     PromptTemplates.BUILTINS.forEach { b ->
                         VbRowTile(
-                            icon = VbIcon.BOOK, 
-                            title = b.name, 
-                            subtitle = b.idea.take(52), 
-                            onClick = { 
+                            icon = VbIcon.BOOK,
+                            title = b.name,
+                            subtitle = b.idea.take(52),
+                            onClick = {
                                 VbClipboard.copy(ctx, "vibe-template", PromptTemplates.compile(b.idea, vm.prefs.target))
                                 Toast.makeText(ctx, "template prompt copied", Toast.LENGTH_SHORT).show()
                             }
@@ -99,9 +103,9 @@ fun LibraryScreen(vm: AppViewModel, goto: (VbTab) -> Unit) {
                 VbPanel(title = "SAVED TEMPLATES") {
                     if (saved.isEmpty()) {
                         VbEmpty(
-                            icon = VbIcon.BOOK, 
-                            title = "No saved templates. Save one from a chat prompt.", 
-                            actionLabel = "GO TO CHAT", 
+                            icon = VbIcon.BOOK,
+                            title = "No saved templates. Save one from a chat prompt.",
+                            actionLabel = "GO TO CHAT",
                             onAction = { goto(VbTab.CHAT) }
                         )
                     } else {
@@ -112,16 +116,16 @@ fun LibraryScreen(vm: AppViewModel, goto: (VbTab) -> Unit) {
                                     Text(t.idea.take(52), color = TextDim, fontSize = 11.sp)
                                 }
                                 VbIconButton(
-                                    icon = VbIcon.COPY, 
-                                    description = "Copy template prompt", 
-                                    onClick = { 
+                                    icon = VbIcon.COPY,
+                                    description = "Copy template prompt",
+                                    onClick = {
                                         VbClipboard.copy(ctx, "vibe-template", PromptTemplates.compile(t.idea, t.target))
                                         Toast.makeText(ctx, "template prompt copied", Toast.LENGTH_SHORT).show()
                                     }
                                 )
                                 VbIconButton(
-                                    icon = VbIcon.TRASH, 
-                                    description = "Delete template", 
+                                    icon = VbIcon.TRASH,
+                                    description = "Delete template",
                                     onClick = { vm.history.deleteTemplate(t.id); refreshKey++ }
                                 )
                             }
@@ -133,21 +137,47 @@ fun LibraryScreen(vm: AppViewModel, goto: (VbTab) -> Unit) {
         } else {
             Stagger(2) {
                 VbPanel(title = "PUSH HISTORY") {
+                    if (ui.revertBusy) {
+                        VbBanner(kind = BannerKind.WARN, text = "time machine: rewinding branch…")
+                        Spacer(Modifier.height(8.dp))
+                    }
+                    ui.revertMsg?.let { m ->
+                        VbBanner(
+                            kind = if (ui.revertOk) BannerKind.INFO else BannerKind.ERROR,
+                            text = m,
+                            modifier = Modifier.clickable { vm.clearRevertMsg() }
+                        )
+                        Spacer(Modifier.height(8.dp))
+                    }
                     if (pushes.isEmpty()) {
                         VbEmpty(
-                            icon = VbIcon.PUSH, 
-                            title = "No pushes recorded yet. Start a change in the chat.", 
-                            actionLabel = "GO TO CHAT", 
+                            icon = VbIcon.PUSH,
+                            title = "No pushes recorded yet. Start a change in the chat.",
+                            actionLabel = "GO TO CHAT",
                             onAction = { goto(VbTab.CHAT) }
                         )
                     } else {
                         pushes.forEach { p ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("${dateFmt.format(java.util.Date(p.ts))}  ${p.repo}", color = Text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                                    Text("${p.ops} ops  ${p.sha.take(7)}  ${p.message.take(32)}", color = TextDim, fontSize = 11.sp)
+                                    Text(
+                                        "${dateFmt.format(java.util.Date(p.ts))}  ${p.repo}",
+                                        color = Text,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        "${p.ops} ops  ${p.sha.take(7)}  ${p.message.take(32)}",
+                                        color = TextDim,
+                                        fontSize = 11.sp
+                                    )
                                 }
                                 VbTag(p.ci.uppercase(), ciColor(p.ci))
+                                VbIconButton(
+                                    icon = VbIcon.CLOCK,
+                                    description = "Time machine: rewind to before this push",
+                                    onClick = { confirmRevert = p }
+                                )
                             }
                             Spacer(Modifier.height(8.dp))
                         }
@@ -155,5 +185,19 @@ fun LibraryScreen(vm: AppViewModel, goto: (VbTab) -> Unit) {
                 }
             }
         }
+    }
+
+    confirmRevert?.let { p ->
+        VbConfirmDialog(
+            title = "TIME MACHINE",
+            body = "Rewind ${p.branch} to the commit BEFORE ${p.sha.take(7)}? The branch pointer moves back; the bad commit stays in history but stops affecting builds.",
+            confirmLabel = "REWIND",
+            onConfirm = {
+                vm.revertPush(p)
+                confirmRevert = null
+            },
+            onDismiss = { confirmRevert = null },
+            danger = true
+        )
     }
 }
