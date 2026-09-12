@@ -99,6 +99,24 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    private fun previewFor(op: BridgeOp): List<String> {
+        val lines = when (op) {
+            is BridgeOp.FileOp -> {
+                val all = op.content.lines()
+                all.take(8).map { "+ $it" } +
+                    if (all.size > 8) listOf("+ … (${all.size - 8} more lines)") else emptyList()
+            }
+            is BridgeOp.EditOp -> {
+                op.hunks.take(2).flatMap { h ->
+                    h.find.lines().take(3).map { "- $it" } +
+                        h.replace.lines().take(3).map { "+ $it" }
+                } + if (op.hunks.size > 2) listOf("… ${op.hunks.size - 2} more hunks") else emptyList()
+            }
+            is BridgeOp.DeleteOp -> listOf("- (entire file removed)")
+        }
+        return lines.take(14)
+    }
+
     fun submitPayload(text: String) {
         append(UserPayload(nextId(), text))
         _ui.update { it.copy(input = "", thinking = true) }
@@ -113,9 +131,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
                 pendingOps = r.ops
                 val rows = r.ops.map { op ->
                     when (op) {
-                        is BridgeOp.FileOp -> PlanRow(op.path, "CREATE", "${op.content.lines().size} lines")
-                        is BridgeOp.EditOp -> PlanRow(op.path, "EDIT", "${op.hunks.size} hunks")
-                        is BridgeOp.DeleteOp -> PlanRow(op.path, "DELETE", "remove file")
+                        is BridgeOp.FileOp -> PlanRow(op.path, "CREATE", "${op.content.lines().size} lines", previewFor(op))
+                        is BridgeOp.EditOp -> PlanRow(op.path, "EDIT", "${op.hunks.size} hunks", previewFor(op))
+                        is BridgeOp.DeleteOp -> PlanRow(op.path, "DELETE", "remove file", previewFor(op))
                     }
                 }
                 append(ParseMsg(nextId(), rows, r.warnings, r.ops.size))

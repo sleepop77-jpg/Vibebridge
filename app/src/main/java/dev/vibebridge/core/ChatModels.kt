@@ -7,7 +7,12 @@ sealed class ChatMsg {
 data class UserIdea(override val id: Long, val text: String) : ChatMsg()
 data class PromptMsg(override val id: Long, val prompt: String, val target: String) : ChatMsg()
 data class UserPayload(override val id: Long, val text: String) : ChatMsg()
-data class PlanRow(val path: String, val kind: String, val detail: String)
+data class PlanRow(
+    val path: String,
+    val kind: String,
+    val detail: String,
+    val preview: List<String> = emptyList()
+)
 data class ParseMsg(
     override val id: Long,
     val rows: List<PlanRow>,

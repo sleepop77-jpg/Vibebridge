@@ -243,6 +243,7 @@ fun ParseBubble(
     onPush: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var openPath by remember { mutableStateOf<String?>(null) }
     val creates = msg.rows.count { it.kind == "CREATE" }
     val edits = msg.rows.count { it.kind == "EDIT" }
     val deletes = msg.rows.count { it.kind == "DELETE" }
@@ -262,20 +263,54 @@ fun ParseBubble(
         Spacer(Modifier.height(8.dp))
         val visible = if (expanded || msg.rows.size <= 3) msg.rows else msg.rows.take(3)
         visible.forEach { r ->
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val tint = when (r.kind) {
-                    "CREATE" -> Accent
-                    "DELETE" -> Danger
-                    else -> TextDim
+            val open = openPath == r.path
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { openPath = if (open) null else r.path }
+                        .padding(vertical = 3.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val tint = when (r.kind) {
+                        "CREATE" -> Accent
+                        "DELETE" -> Danger
+                        else -> TextDim
+                    }
+                    VbIconView(icon = if (r.kind == "DELETE") VbIcon.TRASH else VbIcon.DOC, color = tint, size = 14.dp)
+                    Spacer(Modifier.width(6.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(r.path, style = VbMono.CodeSmall, color = Text)
+                        Text("${r.kind} • ${r.detail}", style = VbMono.Label, color = TextFaint)
+                    }
+                    if (r.preview.isNotEmpty()) {
+                        Text(if (open) "▲" else "▼", color = TextFaint, fontSize = 10.sp)
+                    }
                 }
-                VbIconView(icon = if (r.kind == "DELETE") VbIcon.TRASH else VbIcon.DOC, color = tint, size = 14.dp)
-                Spacer(Modifier.width(6.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(r.path, style = VbMono.CodeSmall, color = Text)
-                    Text("${r.kind} • ${r.detail}", style = VbMono.Label, color = TextFaint)
+                if (open && r.preview.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 20.dp, top = 2.dp, bottom = 6.dp)
+                            .background(Inset, RoundedCornerShape(8.dp))
+                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        r.preview.forEach { line ->
+                            val c = when {
+                                line.startsWith("-") -> Danger
+                                line.startsWith("+") -> Accent
+                                else -> TextFaint
+                            }
+                            Text(
+                                line,
+                                style = VbMono.CodeSmall,
+                                color = c,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
                 }
             }
         }
